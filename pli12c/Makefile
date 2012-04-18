@@ -42,5 +42,7 @@ clean:
 realclean:	clean
 		-/bin/rm pli12c splint.out tags > /dev/null 2>&1
 
+clobber: realclean
+
 $(OBJ):		$(HDR)
 

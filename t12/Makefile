@@ -38,4 +38,6 @@ clean:
 realclean:	clean
 		-/bin/rm t12 tags > /dev/null 2>&1
 
+clobber: realclean
+
 $(OBJ):		$(HDR)

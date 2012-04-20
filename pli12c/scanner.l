@@ -38,9 +38,51 @@ extern  int     pli12yylex_destroy(void);
 extern  void    pli12yyinit(void);
 extern  int     pli12yywrap(void);
 /* This is for you to fill in */
+
 %}
 
-/* This is for you to fill in */
+alpha	[a-zA-Z_]
+digit	[0-9]
+alnum	[a-zA-Z_0-9]
+sp	[ \t]
+nl	[\n\f]
+nonl	[^\n\f]
+
+%%
+
+{digit}+		{
+				t12yylval.Uint = atoi(yytext);
+				return NAT_CONST;
+			}
+
+{digit}+"."{digit}+	{
+				t12yylval.Ureal = atof(yytext);
+				return REAL_CONST;
+			}
+
+"true"			{
+				t12yylval.Ubool = 1;
+				return BOOL_CONST;
+			}
+
+"false"			{
+				t12yylval.Ubool = 0;
+				return BOOL_CONST;
+			}
+
+
+"r"{digit}+		{
+				t12yylval.Uint = atoi(yytext+1);
+				return TOKEN_REG;
+			}
+
+{alpha}{alnum}*		{
+				t12yylval.Ustr = strdup(yytext);
+				return TOKEN_ID;
+			}
+
+
+%%
 
 void
 pli12yyinit(void)

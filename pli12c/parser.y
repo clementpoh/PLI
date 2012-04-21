@@ -17,11 +17,76 @@ extern	char	*pli12yytext;
 extern	void	pli12yyerror(const char *s);
 %}
 
-/* This is for you to fill in */
+%union
+{
+	char        *Ustr;
+	int         Uint;
+	bool        Ubool;
+	float       Ureal;
+	Function	Ufunc;
+}
+
+%token FUNCTION
+
+%token COLON
+%token COMMA
+
+%token INT
+%token REAL
+%token BOOL
+%token STRING
+
+%token RETURNS
+
+%token BEGIN
+%token END
+
+%token DECLARE
+
+%token INITIALIZE
+%token TO
+
+%token READ
+%token WRITE
+
+%token IF
+%token THEN
+%token ELSE
+%token ENDIF
+
+%token WHILE
+%token DO
+%token ENDWHILE
+
+%token RETURN
+
+%token OR
+%token AND
+%token NOT
+
+%token ASSIGN
+%token EQ
+%token NE
+%token LT
+%token LE
+
+%token PLUS
+%token MINUS
+%token TIMES
+%token DIV
+
+%token	<Uint>	INT_CONST
+%token	<Ureal>	REAL_CONST
+%token	<Ubool>	BOOL_CONST
+%token	<Ustr>	STRING_CONST
+
+%%
+
+%%
 
 void pli12yyerror(const char *s)
 {
-	char		buf[80];
+	char buf[80];
 
 	if (pli12yychar <= 0) {
 		sprintf(buf, "premature EOF");

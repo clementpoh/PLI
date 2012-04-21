@@ -37,49 +37,101 @@ extern  int     pli12yylex_destroy(void);
 
 extern  void    pli12yyinit(void);
 extern  int     pli12yywrap(void);
-/* This is for you to fill in */
+
+const char	*t12yyfile = "no input file";
+int		t12yylinenum = 0;
+
 
 %}
 
-alpha	[a-zA-Z_]
-digit	[0-9]
-alnum	[a-zA-Z_0-9]
-sp	[ \t]
-nl	[\n\f]
-nonl	[^\n\f]
+alpha   [a-zA-Z_]
+digit   [0-9]
+alnum   [a-zA-Z_0-9]
+sp  [ \t]
+nl  [\n\f]
+nonl    [^\n\f]
 
 %%
 
-{digit}+		{
-				t12yylval.Uint = atoi(yytext);
-				return NAT_CONST;
-			}
+"function"  { return FUNCTION; }
 
-{digit}+"."{digit}+	{
-				t12yylval.Ureal = atof(yytext);
-				return REAL_CONST;
-			}
+":"         { return COLON; }
+","         { return COMMA; }
+ 
+"int"       { return INT; }
+"real"      { return REAL; }
+"bool"      { return BOOL; }
+"string"    { return STRING; }
 
-"true"			{
-				t12yylval.Ubool = 1;
-				return BOOL_CONST;
-			}
+"returns"   { return RETURNS; }
 
-"false"			{
-				t12yylval.Ubool = 0;
-				return BOOL_CONST;
-			}
+"begin"     { return BEGIN; }
+"end"       { return END; }
+
+"declare"   { return DECLARE; }
+
+"initialize" { return INITIALIZE; }
+"to"        { return TO; }
+
+"read"      { return READ; }
+"write"     { return WRITE; }
+
+"if"        { return IF; }
+"then"      { return THEN; }
+"else"      { return ELSE; }
+"endif"     { return ENDIF; }
+
+"while"     { return WHILE; }
+"do"        { return DO; }
+"endwhile"  { return ENDWHILE; }
+
+"return"    { return RETURN; }
+
+"or"        { return OR; }
+"and"       { return AND; }
+"not"       { return NOT; }
+
+":="        { return ASSIGN; }
+"="         { return EQ; }
+"!="        { return NE; }
+"<"         { return LT; }
+"<="        { return LE; }
+
+"+"         { return PLUS; }
+"-"         { return MINUS; }
+"*"         { return TIMES; }
+"/"         { return DIV; }
+
+{digit}+    {
+                pli2yylval.Uint = atoi(yytext);
+                return INT_CONST;
+            }
+
+{digit}+"."{digit}+ {
+                pli2yylval.Ureal = atof(yytext);
+                return REAL_CONST;
+            }
+
+"true"      {
+                pli2yylval.Ubool = 1;
+                return BOOL_CONST;
+            }
+
+"false"     {
+                pli2yylval.Ubool = 0;
+                return BOOL_CONST;
+            }
 
 
-"r"{digit}+		{
-				t12yylval.Uint = atoi(yytext+1);
-				return TOKEN_REG;
-			}
+\"(\\.|[^\\"])*\" {
+                pli2yylval.Uint = yytext;
+                return STRING_CONST;
+            }
 
-{alpha}{alnum}*		{
-				t12yylval.Ustr = strdup(yytext);
-				return TOKEN_ID;
-			}
+{alpha}{alnum}*     {
+                pli2yylval.Ustr = strdup(yytext);
+                return IDENTIFIER;
+            }
 
 
 %%

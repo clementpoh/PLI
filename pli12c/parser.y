@@ -25,8 +25,19 @@ extern  void    pli12yyerror(const char *s);
     float   Ureal;
     Type    Utype;
     Funcs   Ufunc;
+    Const   Uconst;
+
     Params  Uparams;
+    Param   Uparam;
+
+    Decls   Udecls;
+    Decl    Udecl;
+
     Stmts   Ustmts;
+    Stmt    Ustmt;
+
+    Exprs   Uexprs;
+    Expr    Uexpr;
 }
 
 %token FUNCTION
@@ -89,9 +100,9 @@ extern  void    pli12yyerror(const char *s);
 %token  <Ubool> BOOL_CONST
 %token  <Ustr>  STRING_CONST
 
-%token  <UStr>  IDENT
+%token  <Ustr>  IDENT
 
-%token  <UStr>  TYPE
+%token  <Ustr>  TYPE
 
 %nonassoc OR 
 %nonassoc AND
@@ -101,9 +112,21 @@ extern  void    pli12yyerror(const char *s);
 %left MUL DIV
 %nonassoc UMINUS
 
-%type <Ufunc> function
+%type <Ufunc>   function
+
 %type <Uparams> params
-%type <Ustmts> stmtlist
+%type <Uparam>  param
+
+%type <Udecls>  decls
+%type <Udecl>   decl
+
+%type <Ustmts>  stmtlist
+%type <Ustmt>   stmt
+
+%type <Uexprs>  exprlist
+%type <Uexpr>   expr
+
+%type <Uconst>  const
 
 %start programme
 
@@ -112,34 +135,54 @@ extern  void    pli12yyerror(const char *s);
 /**********************************************************************/
 
 programme
-    : function programme
+    : programme function
         { 
-            parsed_prog.f_rest = parsed_prog.f_first;
-            parsed_prog.first = $1;
+            parsed_prog->f_rest = parsed_prog->f_first;
+            parsed_prog->f_first = $2;
         }
     | function
         { 
-            parsed_prog.f_rest = parsed_prog.f_first;
-            parsed_prog.first = $1;
+            parsed_prog->f_rest = parsed_prog->f_first;
+            parsed_prog->f_first = $1;
         }
     ;
 
 function
-    : FUNCTION IDENT LPAREN params RPAREN RETURNS TYPE BEGIN stmtlist END
-        {
-            $$ = new_function($2, $4, $7, $9);
-        }
+    : FUNCTION IDENT LPAREN params RPAREN RETURNS TYPE BEGIN decls stmtlist END
+        { $$ = new_function($2, $4, $7, $9, $10); }
     ;
 
 params
-    : IDENT COLON TYPE COMMA
-    | IDENT COLON TYPE
-    | { $$ = NULL; }
+    : param 
+        { $$ = param_node($1, NULL); }
+    | params COMMA param
+        { $$ = param_node($3, $1); }
+    |   { $$ = NULL; }
+    ;
+
+param 
+    : IDENT COLON TYPE
+        { $$ = new_param($1, $3); }
+    ;   
+
+decls
+    : decls decl
+        { $$ = decl_node($2, $1); }
+    |   { $$ = NULL; }
+    ;
+
+decl
+    : DECLARE IDENT TYPE SEMICOLON
+        { $$ = new_decl($2, $3, NULL); }
+    | DECLARE IDENT TYPE INITIALIZE TO const
+        { $$ = new_decl($2, $3, $6); }
     ;
 
 stmtlist
     : stmtlist stmt
+        { $$ = stmt_node($2, $1); }
     | stmt
+        { $$ = stmt_node($1, NULL); }
     ;
 
 stmt
@@ -154,7 +197,9 @@ stmt
 
 exprlist
     : exprlist COMMA expr
+        { $$ = expr_node($3, $1); }
     | expr
+        { $$ = expr_node($1, NULL); }
     ;
 
 expr

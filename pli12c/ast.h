@@ -34,6 +34,7 @@ typedef enum {
 } Type;
 
 struct s_const {
+    Type type;
 /* This is for you to fill in */
 };
 
@@ -52,6 +53,7 @@ typedef enum {
 } Status;
 
 struct s_expr {
+    Type type;
 /* This is for you to fill in */
 };
 

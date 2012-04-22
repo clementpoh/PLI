@@ -38,10 +38,6 @@ extern  int     pli12yylex_destroy(void);
 extern  void    pli12yyinit(void);
 extern  int     pli12yywrap(void);
 
-const char	*t12yyfile = "no input file";
-int		t12yylinenum = 0;
-
-
 %}
 
 alpha   [a-zA-Z_]
@@ -151,8 +147,12 @@ nonl    [^\n\f]
 
 {alpha}{alnum}*     {
                 pli2yylval.Ustr = checked_strdup(yytext);
-                return IDENTIFIER;
+                return IDENT;
             }
+
+"#"{nonl}*{nl} { pli12yylinenum++; }
+
+{nl}        { pli12yylinenum++; }
 
 %%
 

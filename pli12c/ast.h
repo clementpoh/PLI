@@ -27,7 +27,10 @@ typedef struct s_funcs  *Funcs;
 /* This is for you to fill in */
 
 typedef enum {
-/* This is for you to fill in */
+    TYPE_INT,
+    TYPE_REAL,
+    TYPE_BOOL,
+    TYPE_STRING
 } Type;
 
 struct s_const {
@@ -61,11 +64,14 @@ struct s_stmt {
 };
 
 struct s_param {
-/* This is for you to fill in */
+    char *name;
+    Type type;
 };
 
 struct s_func {
-/* This is for you to fill in */
+    char *name;
+    Params args;
+    Type type;
 };
 
 struct s_types {

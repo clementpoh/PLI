@@ -4,27 +4,29 @@
 */
 
 /*
-**	Grammar for PLI12 programs.
+**  Grammar for PLI12 programs.
 */
 
-#include	<stdio.h>
-#include	<ctype.h>
-#include	"pli12c.h"
-#include	"missing.h"
+#include    <stdio.h>
+#include    <ctype.h>
+#include    "pli12c.h"
+#include    "missing.h"
 
-extern	char	*pli12yytext;
+extern  char    *pli12yytext;
 
-extern	void	pli12yyerror(const char *s);
+extern  void    pli12yyerror(const char *s);
 %}
 
 %union
 {
-	char        *Ustr;
-	int         Uint;
-	bool        Ubool;
-	float       Ureal;
-    Type        Utype;
-	Function	Ufunc;
+    char    *Ustr;
+    int     Uint;
+    bool    Ubool;
+    float   Ureal;
+    Type    Utype;
+    Funcs   Ufunc;
+    Params  Uparams;
+    Stmts   Ustmts;
 }
 
 %token FUNCTION
@@ -46,6 +48,7 @@ extern	void	pli12yyerror(const char *s);
 %token END
 
 %token DECLARE
+%token SEMICOLON
 
 %token INITIALIZE
 %token TO
@@ -81,12 +84,12 @@ extern	void	pli12yyerror(const char *s);
 %token MUL
 %token DIV
 
-%token	<Uint>	INT_CONST
-%token	<Ureal>	REAL_CONST
-%token	<Ubool>	BOOL_CONST
-%token	<Ustr>	STRING_CONST
+%token  <Uint>  INT_CONST
+%token  <Ureal> REAL_CONST
+%token  <Ubool> BOOL_CONST
+%token  <Ustr>  STRING_CONST
 
-%token  <UStr>  IDENTIFIER
+%token  <UStr>  IDENT
 
 %token  <UStr>  TYPE
 
@@ -98,67 +101,110 @@ extern	void	pli12yyerror(const char *s);
 %left MUL DIV
 %nonassoc UMINUS
 
+%type <Ufunc> function
+%type <Uparams> params
+%type <Ustmts> stmtlist
+
 %start programme
 
 %%
 
-programme   :   function programme
+/**********************************************************************/
+
+programme
+    : function programme
+        { 
+            parsed_prog.f_rest = parsed_prog.f_first;
+            parsed_prog.first = $1;
+        }
     | function
+        { 
+            parsed_prog.f_rest = parsed_prog.f_first;
+            parsed_prog.first = $1;
+        }
     ;
 
-function    :   header BEGIN stmtlist END;
-
-header      :   FUNCTION IDENTIFIER LPAREN args RPAREN RETURNS TYPE;
-
-args        :   IDENTIFIER COLON TYPE COMMA
-    | IDENTIFIER COLON TYPE
-    |
+function
+    : FUNCTION IDENT LPAREN params RPAREN RETURNS TYPE BEGIN stmtlist END
+        {
+            $$ = new_function($2, $4, $7, $9);
+        }
     ;
 
-stmtlist    :  stmt stmtlist
+params
+    : IDENT COLON TYPE COMMA
+    | IDENT COLON TYPE
+    | { $$ = NULL; }
+    ;
+
+stmtlist
+    : stmtlist stmt
     | stmt
     ;
 
-stmt        : IDENTIFIER ASSIGN expr SEMICOLON
-    |   READ IDENTIFIER SEMICOLON
-    |   WRITE expr SEMICOLON
-    |   IF expr THEN stmtlist ENDIF
-    |   IF expr THEN stmtlist ELSE stmtlist ENDIF
-    |   WHILE expr DO stmtlist ENDWHILE
-    |   RETURN expr SEMICOLON
+stmt
+    : IDENT ASSIGN expr SEMICOLON
+    | READ IDENT SEMICOLON
+    | WRITE expr SEMICOLON
+    | IF expr THEN stmtlist ENDIF
+    | IF expr THEN stmtlist ELSE stmtlist ENDIF
+    | WHILE expr DO stmtlist ENDWHILE
+    | RETURN expr SEMICOLON
     ;
 
-exprlist    : expr COMMA exprlist
+exprlist
+    : exprlist COMMA expr
     | expr
     ;
 
-expr    :   IDENTIFIER
-    |   const
-    |   LPAREN expr RPAREN
-    |   expr op expr
-    |   unop expr
-    |   IDENTIFIER LPAREN exprlist RPAREN
-
-exprlist    :   expr COMMA exprlist
-    | expr
+expr
+    : IDENT
+    | const
+    | LPAREN expr RPAREN
+    | expr binop expr
+    | SUB expr %prec UMINUS
+    | NOT expr
+    | IDENT LPAREN exprlist RPAREN
     ;
+
+binop
+    : OR
+    | AND 
+    | NOT
+    | EQ
+    | NE 
+    | LT 
+    | GT 
+    | GE
+    | ADD
+    | SUB
+    | MUL
+    | DIV
+    ;
+
+const 
+    : INT_CONST 
+    | REAL_CONST 
+    | STRING_CONST 
+    | BOOL_CONST
+    ; 
 
 %%
 
 void pli12yyerror(const char *s)
 {
-	char buf[80];
+    char buf[80];
 
-	if (pli12yychar <= 0) {
-		sprintf(buf, "premature EOF");
-		pli12yylinenum--;
-	} else if (pli12yytext[0] == '\n' || pli12yytext[0] == '\f') {
-		sprintf(buf, "%s at end of line", s);
-	} else if (isprint(pli12yytext[0])) {
-		sprintf(buf, "%s at symbol `%s'", s, pli12yytext);
-	} else {
-		sprintf(buf, "%s at \\%o", s, pli12yytext[0]);
+    if (pli12yychar <= 0) {
+        sprintf(buf, "premature EOF");
+        pli12yylinenum--;
+    } else if (pli12yytext[0] == '\n' || pli12yytext[0] == '\f') {
+        sprintf(buf, "%s at end of line", s);
+    } else if (isprint(pli12yytext[0])) {
+        sprintf(buf, "%s at symbol `%s'", s, pli12yytext);
+    } else {
+        sprintf(buf, "%s at \\%o", s, pli12yytext[0]);
     }
 
-	printf("%s, %d: %s\n", pli12yyfile, pli12yylinenum, buf);
+    printf("%s, %d: %s\n", pli12yyfile, pli12yylinenum, buf);
 }

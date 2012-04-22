@@ -23,10 +23,14 @@ extern	void	pli12yyerror(const char *s);
 	int         Uint;
 	bool        Ubool;
 	float       Ureal;
+    Type        Utype;
 	Function	Ufunc;
 }
 
 %token FUNCTION
+
+%token LPAREN
+%token RPAREN
 
 %token COLON
 %token COMMA
@@ -60,19 +64,21 @@ extern	void	pli12yyerror(const char *s);
 
 %token RETURN
 
+%token NOT
 %token OR
 %token AND
-%token NOT
 
 %token ASSIGN
 %token EQ
 %token NE
 %token LT
 %token LE
+%token GT
+%token GE
 
-%token PLUS
-%token MINUS
-%token TIMES
+%token ADD 
+%token SUB
+%token MUL
 %token DIV
 
 %token	<Uint>	INT_CONST
@@ -80,7 +86,62 @@ extern	void	pli12yyerror(const char *s);
 %token	<Ubool>	BOOL_CONST
 %token	<Ustr>	STRING_CONST
 
+%token  <UStr>  IDENTIFIER
+
+%token  <UStr>  TYPE
+
+%nonassoc OR 
+%nonassoc AND
+%nonassoc NOT
+%nonassoc EQ NE LT LE GT GE
+%left ADD SUB
+%left MUL DIV
+%nonassoc UMINUS
+
+%start programme
+
 %%
+
+programme   :   function programme
+    | function
+    ;
+
+function    :   header BEGIN stmtlist END;
+
+header      :   FUNCTION IDENTIFIER LPAREN args RPAREN RETURNS TYPE;
+
+args        :   IDENTIFIER COLON TYPE COMMA
+    | IDENTIFIER COLON TYPE
+    |
+    ;
+
+stmtlist    :  stmt stmtlist
+    | stmt
+    ;
+
+stmt        : IDENTIFIER ASSIGN expr SEMICOLON
+    |   READ IDENTIFIER SEMICOLON
+    |   WRITE expr SEMICOLON
+    |   IF expr THEN stmtlist ENDIF
+    |   IF expr THEN stmtlist ELSE stmtlist ENDIF
+    |   WHILE expr DO stmtlist ENDWHILE
+    |   RETURN expr SEMICOLON
+    ;
+
+exprlist    : expr COMMA exprlist
+    | expr
+    ;
+
+expr    :   IDENTIFIER
+    |   const
+    |   LPAREN expr RPAREN
+    |   expr op expr
+    |   unop expr
+    |   IDENTIFIER LPAREN exprlist RPAREN
+
+exprlist    :   expr COMMA exprlist
+    | expr
+    ;
 
 %%
 

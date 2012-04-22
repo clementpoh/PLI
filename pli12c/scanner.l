@@ -55,20 +55,19 @@ nonl    [^\n\f]
 
 "function"  { return FUNCTION; }
 
+"("         { return LPAREN; }
+")"         { return RPAREN; }
+
 ":"         { return COLON; }
 ","         { return COMMA; }
  
-"int"       { return INT; }
-"real"      { return REAL; }
-"bool"      { return BOOL; }
-"string"    { return STRING; }
-
 "returns"   { return RETURNS; }
 
 "begin"     { return BEGIN; }
 "end"       { return END; }
 
 "declare"   { return DECLARE; }
+";"         { return SEMICOLON; }
 
 "initialize" { return INITIALIZE; }
 "to"        { return TO; }
@@ -87,30 +86,23 @@ nonl    [^\n\f]
 
 "return"    { return RETURN; }
 
+"not"       { return NOT; }
 "or"        { return OR; }
 "and"       { return AND; }
-"not"       { return NOT; }
 
 ":="        { return ASSIGN; }
 "="         { return EQ; }
 "!="        { return NE; }
 "<"         { return LT; }
 "<="        { return LE; }
+">"         { return GT; }
+">="        { return GE; }
 
-"+"         { return PLUS; }
-"-"         { return MINUS; }
-"*"         { return TIMES; }
+"+"         { return ADD; }
+"-"         { return SUB; }
+"*"         { return MUL; }
 "/"         { return DIV; }
 
-{digit}+    {
-                pli2yylval.Uint = atoi(yytext);
-                return INT_CONST;
-            }
-
-{digit}+"."{digit}+ {
-                pli2yylval.Ureal = atof(yytext);
-                return REAL_CONST;
-            }
 
 "true"      {
                 pli2yylval.Ubool = 1;
@@ -122,17 +114,45 @@ nonl    [^\n\f]
                 return BOOL_CONST;
             }
 
+"int"       {
+                pli2yylval.Utype = TYPE_INT;
+                return TYPE;
+            }
+
+"real"      {
+                pli2yylval.Utype = TYPE_REAL;
+                return TYPE;
+            }
+
+"bool"      {
+                pli2yylval.Utype = TYPE_BOOL;
+                return TYPE;
+            }
+
+"string"    {
+                pli2yylval.Utype = TYPE_STRING
+                return TYPE;
+            }
+
+{digit}+    {
+                pli2yylval.Uint = atoi(yytext);
+                return INT_CONST;
+            }
+
+{digit}+"."{digit}+ {
+                pli2yylval.Ureal = atof(yytext);
+                return REAL_CONST;
+            }
 
 \"(\\.|[^\\"])*\" {
-                pli2yylval.Uint = yytext;
+                pli2yylval.Ustr = checked_strdup(yytext);
                 return STRING_CONST;
             }
 
 {alpha}{alnum}*     {
-                pli2yylval.Ustr = strdup(yytext);
+                pli2yylval.Ustr = checked_strdup(yytext);
                 return IDENTIFIER;
             }
-
 
 %%
 

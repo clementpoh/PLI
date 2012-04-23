@@ -1,6 +1,6 @@
 %{
 /*
-** vim: ts=4 sw=4 expandtab
+** vim: ts=4 sw=4 expandtab foldmethod=indent
 */
 
 /*
@@ -100,7 +100,7 @@ extern  void    pli12yyerror(const char *s);
 %token  <Ubool> BOOL_CONST
 %token  <Ustr>  STRING_CONST
 
-%token  <Ustr>  IDENT
+%token  <Ustr>  ID
 
 %token  <Ustr>  TYPE
 
@@ -150,7 +150,7 @@ programme
     ;
 
 function
-    : FUNCTION IDENT args RETURNS TYPE BEGIN decls stmtlist END
+    : FUNCTION ID args RETURNS TYPE BEGIN decls stmtlist END
         { $$ = make_func($2, $3, $5, $7, $8); }
     ;
 
@@ -169,7 +169,7 @@ params
     ;
 
 param 
-    : IDENT COLON TYPE
+    : ID COLON TYPE
         { $$ = make_param($1, $3); }
     ;   
 
@@ -180,9 +180,9 @@ decls
     ;
 
 decl
-    : DECLARE IDENT TYPE SEMICOLON
+    : DECLARE ID TYPE SEMICOLON
         { $$ = make_decl($2, $3, NULL); }
-    | DECLARE IDENT TYPE INITIALIZE TO const
+    | DECLARE ID TYPE INITIALIZE TO const
         { $$ = make_decl($2, $3, $6); }
     ;
 
@@ -194,16 +194,16 @@ stmtlist
     ;
 
 stmt
-    : IDENT ASSIGN expr SEMICOLON
+    : ID ASSIGN expr SEMICOLON
         { $$ = make_assign($1, $3); }
-    | READ IDENT SEMICOLON
+    | READ ID SEMICOLON
         { $$ = make_read($2); }
     | WRITE expr SEMICOLON
         { $$ = make_write($2); }
     | IF expr THEN stmtlist ENDIF
         { $$ = make_if($2, $4); }
     | IF expr THEN stmtlist ELSE stmtlist ENDIF
-        { $$ = make_if($2, $4, $6); }
+        { $$ = make_else($2, $4, $6); }
     | WHILE expr DO stmtlist ENDWHILE
         { $$ = make_while($2, $4); }
     | RETURN expr SEMICOLON
@@ -218,18 +218,19 @@ exprlist
     ;
 
 expr
-    : IDENT
+    : ID
         { $$ = make_ident($1); }
     | const
-        { $$ = $1; }
+        { $$ = make_const($1); }
     | LPAREN expr RPAREN
+        { $$ = $2 }
     | expr binop expr
         { $$ = make_binop($2, pli12yylinenum, $1, $3); }
     | SUB expr %prec UMINUS
         { $$ = make_unop(UNOP_UMINUS, pli12yylinenum, $2); }
     | NOT expr
         { $$ = make_unop(UNOP_NOT, pli12yylinenum, $2); }
-    | IDENT LPAREN exprlist RPAREN
+    | ID LPAREN exprlist RPAREN
         { $$ = make_func_call($1, $3); }
     ;
 

@@ -140,19 +140,19 @@ nonl    [^\n\f]
                 return REAL_CONST;
             }
 
-\"(\\.|[^\\"])*\" {
+\"(\\.|[^\\"])*\"   {
                 pli2yylval.Ustr = checked_strdup(yytext);
                 return STRING_CONST;
             }
 
 {alpha}{alnum}*     {
                 pli2yylval.Ustr = checked_strdup(yytext);
-                return IDENT;
+                return ID;
             }
 
-"#"{nonl}*{nl} { pli12yylinenum++; }
+"#"{nonl}*{nl}      { pli12yylinenum++; }
 
-{nl}        { pli12yylinenum++; }
+{nl}                { pli12yylinenum++; }
 
 %%
 

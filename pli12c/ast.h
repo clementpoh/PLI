@@ -1,5 +1,5 @@
 /*
-** vim: ts=4 sw=4 expandtab
+** vim: ts=4 sw=4 expandtab foldmethod=indent
 */
 /*
 ** This module should define an abstract syntax tree for PLI12 programs.
@@ -18,11 +18,13 @@ typedef struct s_stmt   *Stmt;
 typedef struct s_param  *Param;
 typedef struct s_func   *Func;
 
+/* Statements */
 typedef struct s_assign *Assign;
 typedef struct s_if     *If;
 typedef struct s_else   *Else;
 typedef struct s_while  *While;
 
+/* Lists */
 typedef struct s_types  *Types;
 typedef struct s_exprs  *Exprs;
 typedef struct s_decls  *Decls;
@@ -54,6 +56,12 @@ typedef enum {
     TYPE_RETURN
 } StateType;
 
+typedef enum {
+    BINOP_OR, BINOP_AND,
+    BINOP_EQ, BINOP_NE, BINOP_LT, BINOP_LE, BINOP_GT, BINOP_GE,
+    BINOP_ADD, BINOP_SUB, BINOP_MUL, BINOP_DIV
+} BinOp;
+
 typedef union {
     Assign  Uassign;
     char    *Uread;
@@ -69,11 +77,6 @@ struct s_const {
     Val val;
 };
 
-typedef enum {
-    BINOP_OR, BINOP_AND,
-    BINOP_EQ, BINOP_NE, BINOP_LT, BINOP_LE, BINOP_GT, BINOP_GE,
-    BINOP_ADD, BINOP_SUB, BINOP_MUL, BINOP_DIV
-} BinOp;
 
 typedef enum {
     UNOP_NOT, UNOP_UMINUS, UNOP_INT_TO_REAL
@@ -89,7 +92,7 @@ struct s_expr {
 };
 
 struct s_decl {
-    char    *name;
+    char    *id;
     Type    type;
     Val     val;   
 };
@@ -100,20 +103,21 @@ struct s_stmt {
 };
 
 struct s_param {
-    char    *name;
+    char    *id;
     Type    type;
 };
 
 struct s_func {
-    char    *name;
+    char    *id;
     Params  args;
     Type    type;
     Decls   decls;
     Stmts   stms;
 };
 
+/* Statements */
 struct s_assign {
-    char *ident;
+    char *id;
     Expr expr;
 }
 
@@ -133,6 +137,7 @@ struct s_while {
     Stmts   rep;
 }
 
+/* Lists */
 struct s_types {
     Type    t_first;
     Types   t_rest;
@@ -163,22 +168,35 @@ struct s_funcs {
     Funcs   f_rest;
 };
 
-extern  Func    make_func(char*, Params, Type, Decls, Stmts); 
+extern  Func    make_func(char *id, Params ps, Type t, Decls ds, Stmts ss); 
+extern  Param   make_param(char *id, Type t); 
+extern  Decl    make_decl(char *id, Type t, Const init);
 
-extern  Const   make_int(int);
-extern  Const   make_real(float);
-extern  Const   make_bool(bool);
-extern  Const   make_str(char*);
+extern  Stmt    make_assign(char *id, Expr e);
+extern  Stmt    make_read(char *id);
+extern  Stmt    make_write(Expr e);
+extern  Stmt    make_if(Expr cond, Stmts then);
+extern  Stmt    make_else(Expr cond, Stmts then, Stmts other);
+extern  Stmt    make_while(Expr cond, Stmts rep);
+extern  Stmt    make_return(Expr e);
+
+extern  Expr    make_ident(char *id);
+extern  Expr    make_const(char *c);
+extern  Expr    make_binop(BinOp binop, int lineno, Expr e1, Expr e2);
+extern  Expr    make_unop(UnOp unop, int lineno, Expr e1);
+extern  Expr    make_func_call(char *id, Exprs args);
+
+extern  Expr    convert_int_to_real(Expr expr);
+
+extern  Const   make_int(int i);
+extern  Const   make_real(float r);
+extern  Const   make_bool(bool b);
+extern  Const   make_str(char *s);
 
 extern  Params  ins_param(Param p, Params ps);
 extern  Decls   ins_decl(Decl d, Decls ds);
 extern  Stmts   ins_stmt(Stmt s, Stms ss);
 extern  Exprs   ins_expr(Expr e, Exprs es);
-
-extern  Expr    make_binop(BinOp binop, int lineno, Expr e1, Expr e2);
-extern  Expr    make_unop(UnOp unop, int lineno, Expr e1);
-
-extern  Expr    convert_int_to_real(Expr expr);
 
 
 #endif  /* AST_H */

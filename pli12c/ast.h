@@ -58,7 +58,9 @@ struct s_expr {
 };
 
 struct s_decl {
-/* This is for you to fill in */
+    char *name;
+    Type type;
+    Const
 };
 
 struct s_stmt {

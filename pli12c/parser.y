@@ -114,6 +114,7 @@ extern  void    pli12yyerror(const char *s);
 
 %type <Ufunc>   function
 
+%type <args>    params
 %type <Uparams> params
 %type <Uparam>  param
 
@@ -148,8 +149,15 @@ programme
     ;
 
 function
-    : FUNCTION IDENT LPAREN params RPAREN RETURNS TYPE BEGIN decls stmtlist END
+    : FUNCTION IDENT args RETURNS TYPE BEGIN decls stmtlist END
         { $$ = new_function($2, $4, $7, $9, $10); }
+    ;
+
+args
+    : LPAREN RPAREN
+        { $$ = NULL; }
+    | LPAREN params RPAREN
+        { $$ = $2 }
     ;
 
 params
@@ -157,7 +165,6 @@ params
         { $$ = param_node($1, NULL); }
     | params COMMA param
         { $$ = param_node($3, $1); }
-    |   { $$ = NULL; }
     ;
 
 param 

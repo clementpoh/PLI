@@ -114,7 +114,7 @@ extern  void    pli12yyerror(const char *s);
 
 %type <Ufunc>   function
 
-%type <args>    params
+%type <Uparams> args
 %type <Uparams> params
 %type <Uparam>  param
 
@@ -127,6 +127,7 @@ extern  void    pli12yyerror(const char *s);
 %type <Uexprs>  exprlist
 %type <Uexpr>   expr
 
+%type <BinOp>   binop
 %type <Uconst>  const
 
 %start programme
@@ -139,7 +140,7 @@ programme
     : programme function
         { 
             parsed_prog->f_rest = parsed_prog->f_first;
-            parsed_prog->f_first = $2;
+         
         }
     | function
         { 
@@ -150,7 +151,7 @@ programme
 
 function
     : FUNCTION IDENT args RETURNS TYPE BEGIN decls stmtlist END
-        { $$ = new_function($2, $4, $7, $9, $10); }
+        { $$ = make_func($2, $3, $5, $7, $8); }
     ;
 
 args
@@ -162,83 +163,95 @@ args
 
 params
     : param 
-        { $$ = param_node($1, NULL); }
+        { $$ = ins_param($1, NULL); }
     | params COMMA param
-        { $$ = param_node($3, $1); }
+        { $$ = ins_param($3, $1); }
     ;
 
 param 
     : IDENT COLON TYPE
-        { $$ = new_param($1, $3); }
+        { $$ = make_param($1, $3); }
     ;   
 
 decls
     : decls decl
-        { $$ = decl_node($2, $1); }
+        { $$ = ins_decl($2, $1); }
     |   { $$ = NULL; }
     ;
 
 decl
     : DECLARE IDENT TYPE SEMICOLON
-        { $$ = new_decl($2, $3, NULL); }
+        { $$ = make_decl($2, $3, NULL); }
     | DECLARE IDENT TYPE INITIALIZE TO const
-        { $$ = new_decl($2, $3, $6); }
+        { $$ = make_decl($2, $3, $6); }
     ;
 
 stmtlist
     : stmtlist stmt
-        { $$ = stmt_node($2, $1); }
+        { $$ = ins_stmt($2, $1); }
     | stmt
-        { $$ = stmt_node($1, NULL); }
+        { $$ = ins_stmt($1, NULL); }
     ;
 
 stmt
     : IDENT ASSIGN expr SEMICOLON
+        { $$ = make_assign($1, $3); }
     | READ IDENT SEMICOLON
+        { $$ = make_read($2); }
     | WRITE expr SEMICOLON
+        { $$ = make_write($2); }
     | IF expr THEN stmtlist ENDIF
+        { $$ = make_if($2, $4); }
     | IF expr THEN stmtlist ELSE stmtlist ENDIF
+        { $$ = make_if($2, $4, $6); }
     | WHILE expr DO stmtlist ENDWHILE
+        { $$ = make_while($2, $4); }
     | RETURN expr SEMICOLON
+        { $$ = make_return($2); }
     ;
 
 exprlist
     : exprlist COMMA expr
-        { $$ = expr_node($3, $1); }
+        { $$ = ins_expr($3, $1); }
     | expr
-        { $$ = expr_node($1, NULL); }
+        { $$ = ins_expr($1, NULL); }
     ;
 
 expr
     : IDENT
+        { $$ = make_ident($1); }
     | const
+        { $$ = $1; }
     | LPAREN expr RPAREN
     | expr binop expr
+        { $$ = make_binop($2, pli12yylinenum, $1, $3); }
     | SUB expr %prec UMINUS
+        { $$ = make_unop(UNOP_UMINUS, pli12yylinenum, $2); }
     | NOT expr
+        { $$ = make_unop(UNOP_NOT, pli12yylinenum, $2); }
     | IDENT LPAREN exprlist RPAREN
+        { $$ = make_func_call($1, $3); }
     ;
 
 binop
-    : OR
-    | AND 
-    | NOT
-    | EQ
-    | NE 
-    | LT 
-    | GT 
-    | GE
-    | ADD
-    | SUB
-    | MUL
-    | DIV
+    : OR    { $$ = BINOP_OR }
+    | AND   { $$ = BINOP_AND }
+    | EQ    { $$ = BINOP_EQ }
+    | NE    { $$ = BINOP_NE }
+    | LT    { $$ = BINOP_LT }
+    | GT    { $$ = BINOP_GT }
+    | GE    { $$ = BINOP_GE }
+    | ADD   { $$ = BINOP_ADD }
+    | SUB   { $$ = BINOP_SUB }
+    | MUL   { $$ = BINOP_MUL }
+    | DIV   { $$ = BINOP_DIV }
     ;
 
 const 
-    : INT_CONST 
-    | REAL_CONST 
-    | STRING_CONST 
-    | BOOL_CONST
+    : INT_CONST     { $$ = make_int($1); }
+    | REAL_CONST    { $$ = make_real($1); }
+    | BOOL_CONST    { $$ = make_bool($1); }
+    | STRING_CONST  { $$ = make_str($1); }
     ; 
 
 %%

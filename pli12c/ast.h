@@ -3,6 +3,7 @@
 */
 /*
 ** This module should define an abstract syntax tree for PLI12 programs.
+** I want Haskell's discriminating unionised types. C sucks.
 */
 
 #ifndef AST_H
@@ -17,6 +18,11 @@ typedef struct s_stmt   *Stmt;
 typedef struct s_param  *Param;
 typedef struct s_func   *Func;
 
+typedef struct s_assign *Assign;
+typedef struct s_if     *If;
+typedef struct s_else   *Else;
+typedef struct s_while  *While;
+
 typedef struct s_types  *Types;
 typedef struct s_exprs  *Exprs;
 typedef struct s_decls  *Decls;
@@ -24,7 +30,12 @@ typedef struct s_stmts  *Stmts;
 typedef struct s_params *Params;
 typedef struct s_funcs  *Funcs;
 
-/* This is for you to fill in */
+typedef union {
+    char    *Ustr;
+    int     Uint;
+    bool    Ubool;
+    float   Ureal;
+} Val;
 
 typedef enum {
     TYPE_INT,
@@ -33,9 +44,29 @@ typedef enum {
     TYPE_STRING
 } Type;
 
+typedef enum {
+    TYPE_ASSIGN,
+    TYPE_READ,
+    TYPE_WRITE,
+    TYPE_IF,
+    TYPE_ELSE,
+    TYPE_WHILE,
+    TYPE_RETURN
+} StateType;
+
+typedef union {
+    Assign  Uassign;
+    char    *Uread;
+    Expr    Uwrite;
+    If      Uif;
+    Else    Uelse;
+    While   Uwhile;
+    Expr    Ureturn;
+} Statement;
+
 struct s_const {
     Type type;
-/* This is for you to fill in */
+    Val val;
 };
 
 typedef enum {
@@ -54,29 +85,53 @@ typedef enum {
 
 struct s_expr {
     Type type;
-/* This is for you to fill in */
+    expr_t ex;
 };
 
 struct s_decl {
-    char *name;
-    Type type;
-    Const
+    char    *name;
+    Type    type;
+    Val     val;   
 };
 
 struct s_stmt {
-/* This is for you to fill in */
+    StateType t;
+    Statement s;
 };
 
 struct s_param {
-    char *name;
-    Type type;
+    char    *name;
+    Type    type;
 };
 
 struct s_func {
-    char *name;
-    Params args;
-    Type type;
+    char    *name;
+    Params  args;
+    Type    type;
+    Decls   decls;
+    Stmts   stms;
 };
+
+struct s_assign {
+    char *ident;
+    Expr expr;
+}
+
+struct s_if {
+    Expr    cond;
+    Stmts   then;
+}
+
+struct s_else {
+    Expr    cond;
+    Stmts   then;
+    Stmts   other;
+}
+
+struct s_while {
+    Expr    cond;
+    Stmts   rep;
+}
 
 struct s_types {
     Type    t_first;
@@ -108,11 +163,22 @@ struct s_funcs {
     Funcs   f_rest;
 };
 
+extern  Func    make_func(char*, Params, Type, Decls, Stmts); 
+
+extern  Const   make_int(int);
+extern  Const   make_real(float);
+extern  Const   make_bool(bool);
+extern  Const   make_str(char*);
+
+extern  Params  ins_param(Param p, Params ps);
+extern  Decls   ins_decl(Decl d, Decls ds);
+extern  Stmts   ins_stmt(Stmt s, Stms ss);
+extern  Exprs   ins_expr(Expr e, Exprs es);
+
 extern  Expr    make_binop(BinOp binop, int lineno, Expr e1, Expr e2);
 extern  Expr    make_unop(UnOp unop, int lineno, Expr e1);
 
 extern  Expr    convert_int_to_real(Expr expr);
 
-/* This is for you to fill in */
 
 #endif  /* AST_H */

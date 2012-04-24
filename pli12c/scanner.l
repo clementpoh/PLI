@@ -59,7 +59,7 @@ nonl    [^\n\f]
  
 "returns"   { return RETURNS; }
 
-"begin"     { return BEGIN; }
+"begin"     { return BEGINS; }
 "end"       { return END; }
 
 "declare"   { return DECLARE; }
@@ -101,52 +101,52 @@ nonl    [^\n\f]
 
 
 "true"      {
-                pli2yylval.Ubool = 1;
+                pli12yylval.Ubool = 1;
                 return BOOL_CONST;
             }
 
 "false"     {
-                pli2yylval.Ubool = 0;
+                pli12yylval.Ubool = 0;
                 return BOOL_CONST;
             }
 
 "int"       {
-                pli2yylval.Utype = TYPE_INT;
+                pli12yylval.Utype = TYPE_INT;
                 return TYPE;
             }
 
 "real"      {
-                pli2yylval.Utype = TYPE_REAL;
+                pli12yylval.Utype = TYPE_REAL;
                 return TYPE;
             }
 
 "bool"      {
-                pli2yylval.Utype = TYPE_BOOL;
+                pli12yylval.Utype = TYPE_BOOL;
                 return TYPE;
             }
 
 "string"    {
-                pli2yylval.Utype = TYPE_STRING
+                pli12yylval.Utype = TYPE_STRING;
                 return TYPE;
             }
 
 {digit}+    {
-                pli2yylval.Uint = atoi(yytext);
+                pli12yylval.Uint = atoi(yytext);
                 return INT_CONST;
             }
 
 {digit}+"."{digit}+ {
-                pli2yylval.Ureal = atof(yytext);
+                pli12yylval.Ureal = atof(yytext);
                 return REAL_CONST;
             }
 
 \"(\\.|[^\\"])*\"   {
-                pli2yylval.Ustr = checked_strdup(yytext);
+                pli12yylval.Ustr = checked_strdup(yytext);
                 return STRING_CONST;
             }
 
 {alpha}{alnum}*     {
-                pli2yylval.Ustr = checked_strdup(yytext);
+                pli12yylval.Ustr = checked_strdup(yytext);
                 return ID;
             }
 

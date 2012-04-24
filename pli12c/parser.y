@@ -24,8 +24,11 @@ extern  void    pli12yyerror(const char *s);
     bool    Ubool;
     float   Ureal;
     Type    Utype;
-    Func    Ufunc;
     Const   Uconst;
+    BinOp   Ubinop;
+
+    Funcs   Ufuncs;
+    Func    Ufunc;
 
     Params  Uparams;
     Param   Uparam;
@@ -55,7 +58,7 @@ extern  void    pli12yyerror(const char *s);
 
 %token RETURNS
 
-%token BEGIN
+%token BEGINS
 %token END
 
 %token DECLARE
@@ -112,6 +115,7 @@ extern  void    pli12yyerror(const char *s);
 %left MUL DIV
 %nonassoc UMINUS
 
+%type <Ufuncs>  programme
 %type <Ufunc>   function
 
 %type <Uparams> args
@@ -127,8 +131,8 @@ extern  void    pli12yyerror(const char *s);
 %type <Uexprs>  exprlist
 %type <Uexpr>   expr
 
-%type <BinOp>   binop
-%type <Uconst>  const
+%type <Ubinop>   binop
+%type <Uconst>  constant
 
 %start programme
 
@@ -138,13 +142,13 @@ extern  void    pli12yyerror(const char *s);
 
 programme
     : programme function
-        { ins_func($2, $1); }
+        { parsed_prog = ins_func($2, $1); }
     | function
-        { ins_func($1, NULL); }
+        { parsed_prog = ins_func($1, NULL); }
     ;
 
 function
-    : FUNCTION ID args RETURNS TYPE BEGIN decls stmtlist END
+    : FUNCTION ID args RETURNS TYPE BEGINS decls stmtlist END
         { $$ = make_func($2, $3, $5, $7, $8); }
     ;
 
@@ -176,7 +180,7 @@ decls
 decl
     : DECLARE ID TYPE SEMICOLON
         { $$ = make_decl($2, $3, NULL); }
-    | DECLARE ID TYPE INITIALIZE TO const
+    | DECLARE ID TYPE INITIALIZE TO constant
         { $$ = make_decl($2, $3, $6); }
     ;
 
@@ -214,7 +218,7 @@ exprlist
 expr
     : ID
         { $$ = make_ident($1); }
-    | const
+    | constant
         { $$ = make_const($1); }
     | LPAREN expr RPAREN
         { $$ = $2 }
@@ -242,7 +246,7 @@ binop
     | DIV   { $$ = BINOP_DIV }
     ;
 
-const 
+constant
     : INT_CONST     { $$ = make_int($1); }
     | REAL_CONST    { $$ = make_real($1); }
     | BOOL_CONST    { $$ = make_bool($1); }

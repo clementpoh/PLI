@@ -97,7 +97,7 @@ Decls   ins_decl(Decl d, Decls ds) {
     return new;
 }
 
-Stmts   ins_stmt(Stmt s, Stms ss) {
+Stmts   ins_stmt(Stmt s, Stmts ss) {
     Stmts new = checked_malloc(sizeof(Stmts));
 
     new->s_first = s;

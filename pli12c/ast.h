@@ -88,7 +88,7 @@ typedef enum {
 
 struct s_expr {
     Type type;
-    expr_t ex;
+    Expr expr;
 };
 
 struct s_decl {
@@ -195,7 +195,7 @@ extern  Const   make_str(char *s);
 
 extern  Params  ins_param(Param p, Params ps);
 extern  Decls   ins_decl(Decl d, Decls ds);
-extern  Stmts   ins_stmt(Stmt s, Stms ss);
+extern  Stmts   ins_stmt(Stmt s, Stmts ss);
 extern  Exprs   ins_expr(Expr e, Exprs es);
 
 

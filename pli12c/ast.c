@@ -3,6 +3,7 @@
 */
 
 #include <stdlib.h>
+#include <assert.h>
 
 #include "pli12c.h"
 #include "ast.h"
@@ -24,6 +25,17 @@ Param   make_param(char *id, Type t) {
 
     new->id = id;
     new->type = t;
+
+    return new;
+}
+
+Decl    make_decl(char *id, Type t, Const init) {
+    Decl new = checked_malloc(sizeof(Decl));
+    assert(t == init->type);
+
+    new->id = id;
+    new->type = t;
+    new->val = init->val;
 
     return new;
 }

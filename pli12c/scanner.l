@@ -154,6 +154,9 @@ nonl    [^\n\f]
 
 {nl}                { pli12yylinenum++; }
 
+{sp}			{}
+{nonl} 			{ return GARBAGE;	}
+
 %%
 
 void

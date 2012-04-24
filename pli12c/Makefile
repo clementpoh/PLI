@@ -10,7 +10,7 @@ SSRC =		pli12c.c t12.c \
 CC =		gnuc
 # We need -ffloat-store to help ensure consistent results for floating point
 # operations on different architectures and with different optimization levels.
-CFLAGS =	-ffloat-store
+CFLAGS =	-ffloat-store -g -O0
 LINKFLAGS =
 # CFLAGS =	-ffloat-store -g -O0 -fprofile-arcs -ftest-coverage
 # LINKFLAGS =	-g -fprofile-arcs

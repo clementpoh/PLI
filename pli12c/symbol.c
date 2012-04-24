@@ -1,1 +1,1 @@
-/* This is for you to fill in */
+void	init_with_builtin_functions(void) { }

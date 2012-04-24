@@ -123,8 +123,8 @@ typedef union {
 } Expression;
 
 struct s_expr {
-    Type ret;
-    ExprType type;
+    Type r;
+    ExprType t;
     Expression e;
 };
 
@@ -223,7 +223,7 @@ extern  Stmt    make_return(Expr e);
 extern  Expr    make_ident(char *id);
 extern  Expr    make_const(Const c);
 extern  Expr    make_binop(BinOp binop, int lineno, Expr e1, Expr e2);
-extern  Expr    make_unop(UnOp unop, int lineno, Expr e1);
+extern  Expr    make_unop(UnOp unop, int lineno, Expr e);
 extern  Expr    make_call(char *id, Exprs args);
 
 extern  Expr    convert_int_to_real(Expr expr);

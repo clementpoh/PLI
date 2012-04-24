@@ -31,11 +31,14 @@ Param   make_param(char *id, Type t) {
 
 Decl    make_decl(char *id, Type t, Const init) {
     Decl new = checked_malloc(sizeof(Decl));
-    assert(t == init->type);
 
     new->id = id;
     new->type = t;
-    new->val = init->val;
+
+    if (init) {
+        assert(t == init->type);
+        new->val = init->val;
+    }
 
     return new;
 }
@@ -57,7 +60,6 @@ Stmt    make_read(char *id) {
     new->s.Uread = id;
 
     return new;
-
 }
 
 Stmt    make_write(Expr e) {
@@ -112,12 +114,54 @@ Stmt    make_return(Expr e) {
 Expr    make_ident(char *id) {
     Expr new = checked_malloc(sizeof(Expr));
 
+    new->t = EXPR_ID;
+    new->e.Uid = id;
+
+    return new;
 }
 
-Expr    make_const(Const c);
-Expr    make_binop(BinOp binop, int lineno, Expr e1, Expr e2);
-Expr    make_unop(UnOp unop, int lineno, Expr e1);
-Expr    make_func_call(char *id, Exprs args);
+Expr    make_const(Const c) {
+    Expr new = checked_malloc(sizeof(Expr));
+
+    new->t = EXPR_CONST;
+    new->e.Uconst = c;
+
+    return new;
+}
+
+Expr    make_binop(BinOp binop, int lineno, Expr e1, Expr e2) {
+    Expr new = checked_malloc(sizeof(Expr));
+
+    /* TODO: Work out the type of the returned expression. */
+    new->t = EXPR_BINOP;
+    new->e.Ubinop.op = binop;
+    new->e.Ubinop.e1 = e1;
+    new->e.Ubinop.e2 = e2;
+
+    return new;
+}
+
+Expr    make_unop(UnOp unop, int lineno, Expr e) {
+    Expr new = checked_malloc(sizeof(Expr));
+
+    /* TODO: Work out the type of the returned expression. */
+    new->t = EXPR_UNOP;
+    new->e.Uunop.op = unop;
+    new->e.Uunop.e = e;
+
+    return new;
+}
+
+Expr    make_call(char *id, Exprs args) {
+    Expr new = checked_malloc(sizeof(Expr));
+
+    /* TODO: Work out the type of the returned expression. */
+    new->t = EXPR_FUNC;
+    new->e.Ucall.id = id;
+    new->e.Ucall.args = args;
+
+    return new;
+}
 
 Const   make_int(int i) {
     Const new = checked_malloc(sizeof(Const));

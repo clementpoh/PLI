@@ -51,11 +51,6 @@ extern  void    pli12yyerror(const char *s);
 %token COLON
 %token COMMA
 
-%token INT
-%token REAL
-%token BOOL
-%token STRING
-
 %token RETURNS
 
 %token BEGINS
@@ -106,6 +101,8 @@ extern  void    pli12yyerror(const char *s);
 %token  <Ustr>  ID
 
 %token  <Utype> TYPE
+
+%token  GARBAGE
 
 %nonassoc OR 
 %nonassoc AND
@@ -238,6 +235,7 @@ binop
     | EQ    { $$ = BINOP_EQ }
     | NE    { $$ = BINOP_NE }
     | LT    { $$ = BINOP_LT }
+    | LE    { $$ = BINOP_LE }
     | GT    { $$ = BINOP_GT }
     | GE    { $$ = BINOP_GE }
     | ADD   { $$ = BINOP_ADD }

@@ -7,6 +7,27 @@
 #include "pli12c.h"
 #include "ast.h"
 
+Func    make_func(char *id, Params ps, Type t, Decls ds, Stmts ss) {
+    Func new = checked_malloc(sizeof(Func));
+
+    new->id = id;
+    new->args = ps;
+    new->type = t;
+    new->decls = ds;
+    new->stmts = ss;
+
+    return new;
+}
+
+Param   make_param(char *id, Type t) {
+    Param new = checked_malloc(sizeof(Param));
+
+    new->id = id;
+    new->type = t;
+
+    return new;
+}
+
 Const   make_int(int i) {
     Const new = checked_malloc(sizeof(Const));
 

@@ -43,17 +43,17 @@ Decl    make_decl(char *id, Type t, Const init) {
 Stmt    make_assign(char *id, Expr e) {
     Stmt new = checked_malloc(sizeof(Stmt));
 
-    new->t = TYPE_ASSIGN;
+    new->t = STMT_ASSIGN;
     new->s.Uassign.id = id;
     new->s.Uassign.expr = e;
 
     return new;
 }
 
-Stmt    make_read(char *id) P
+Stmt    make_read(char *id) {
     Stmt new = checked_malloc(sizeof(Stmt));
 
-    new->t = TYPE_READ;
+    new->t = STMT_READ;
     new->s.Uread = id;
 
     return new;
@@ -63,7 +63,7 @@ Stmt    make_read(char *id) P
 Stmt    make_write(Expr e) {
     Stmt new = checked_malloc(sizeof(Stmt));
 
-    new->t = TYPE_WRITE;
+    new->t = STMT_WRITE;
     new->s.Uwrite = e;
 
     return new;
@@ -72,7 +72,7 @@ Stmt    make_write(Expr e) {
 Stmt    make_if(Expr cond, Stmts then) {
     Stmt new = checked_malloc(sizeof(Stmt));
 
-    new->t = TYPE_IF;
+    new->t = STMT_IF;
     new->s.Uif.cond = cond;
     new->s.Uif.then = then;
 
@@ -82,7 +82,7 @@ Stmt    make_if(Expr cond, Stmts then) {
 Stmt    make_else(Expr cond, Stmts then, Stmts other) {
     Stmt new = checked_malloc(sizeof(Stmt));
 
-    new->t = TYPE_ELSE;
+    new->t = STMT_ELSE;
     new->s.Uelse.cond = cond;
     new->s.Uelse.then = then;
     new->s.Uelse.other = other;
@@ -93,7 +93,7 @@ Stmt    make_else(Expr cond, Stmts then, Stmts other) {
 Stmt    make_while(Expr cond, Stmts rep) {
     Stmt new = checked_malloc(sizeof(Stmt));
 
-    new->t = TYPE_WHILE;
+    new->t = STMT_WHILE;
     new->s.Uwhile.cond = cond;
     new->s.Uwhile.rep = rep;
 
@@ -103,13 +103,17 @@ Stmt    make_while(Expr cond, Stmts rep) {
 Stmt    make_return(Expr e) {
     Stmt new = checked_malloc(sizeof(Stmt));
 
-    new->t = TYPE_RETURN;
+    new->t = STMT_RETURN;
     new->s.Ureturn = e;
 
     return new;
 }
 
-Expr    make_ident(char *id);
+Expr    make_ident(char *id) {
+    Expr new = checked_malloc(sizeof(Expr));
+
+}
+
 Expr    make_const(Const c);
 Expr    make_binop(BinOp binop, int lineno, Expr e1, Expr e2);
 Expr    make_unop(UnOp unop, int lineno, Expr e1);

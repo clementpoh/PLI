@@ -19,10 +19,15 @@ typedef struct s_param  *Param;
 typedef struct s_func   *Func;
 
 /* Statements */
-typedef struct s_assign *Assign;
-typedef struct s_if     *If;
-typedef struct s_else   *Else;
-typedef struct s_while  *While;
+typedef struct s_assign Assign;
+typedef struct s_if     If;
+typedef struct s_else   Else;
+typedef struct s_while  While;
+
+/* Expressions */
+typedef struct s_binop  Binop;
+typedef struct s_unop   Unop;
+typedef struct s_call   Call;
 
 /* Lists */
 typedef struct s_types  *Types;
@@ -47,36 +52,15 @@ typedef enum {
 } Type;
 
 typedef enum {
-    TYPE_ASSIGN,
-    TYPE_READ,
-    TYPE_WRITE,
-    TYPE_IF,
-    TYPE_ELSE,
-    TYPE_WHILE,
-    TYPE_RETURN
-} StateType;
-
-typedef enum {
     BINOP_OR, BINOP_AND,
     BINOP_EQ, BINOP_NE, BINOP_LT, BINOP_LE, BINOP_GT, BINOP_GE,
     BINOP_ADD, BINOP_SUB, BINOP_MUL, BINOP_DIV
 } BinOp;
 
-typedef union {
-    Assign  Uassign;
-    char    *Uread;
-    Expr    Uwrite;
-    If      Uif;
-    Else    Uelse;
-    While   Uwhile;
-    Expr    Ureturn;
-} Statement;
-
 struct s_const {
     Type type;
     Val val;
 };
-
 
 typedef enum {
     UNOP_NOT, UNOP_UMINUS, UNOP_INT_TO_REAL
@@ -86,20 +70,10 @@ typedef enum {
     BUILTIN, USER_DEFINED
 } Status;
 
-struct s_expr {
-    Type type;
-    Expr expr;
-};
-
 struct s_decl {
     char    *id;
     Type    type;
     Val     val;   
-};
-
-struct s_stmt {
-    StateType t;
-    Statement s;
 };
 
 struct s_param {
@@ -115,7 +89,57 @@ struct s_func {
     Stmts   stmts;
 };
 
+/* Expressions */
+typedef enum {
+    EXPR_ID,
+    EXPR_CONST,
+    EXPR_BINOP,
+    EXPR_UNOP,
+    EXPR_FUNC
+} ExprType;
+
+struct s_binop {
+    BinOp   op;
+    Expr    e1;
+    Expr    e2;
+};
+
+struct s_unop {
+    UnOp    op;
+    Expr    e;
+};
+
+struct s_call {
+    char    *id;
+    Exprs   args;
+};
+
+typedef union {
+    char    *Uid;
+    Const   Uconst;
+    Binop   Ubinop;
+    Unop    Uunop;
+    Call    Ucall;
+} Expression;
+
+struct s_expr {
+    Type ret;
+    ExprType type;
+    Expression e;
+};
+
+
 /* Statements */
+typedef enum {
+    STMT_ASSIGN,
+    STMT_READ,
+    STMT_WRITE,
+    STMT_IF,
+    STMT_ELSE,
+    STMT_WHILE,
+    STMT_RETURN
+} StateType;
+
 struct s_assign {
     char *id;
     Expr expr;
@@ -136,6 +160,22 @@ struct s_while {
     Expr    cond;
     Stmts   rep;
 };
+
+typedef union {
+    Assign  Uassign;
+    char    *Uread;
+    Expr    Uwrite;
+    If      Uif;
+    Else    Uelse;
+    While   Uwhile;
+    Expr    Ureturn;
+} Statement;
+
+struct s_stmt {
+    StateType t;
+    Statement s;
+};
+
 
 /* Lists */
 struct s_types {
@@ -184,7 +224,7 @@ extern  Expr    make_ident(char *id);
 extern  Expr    make_const(Const c);
 extern  Expr    make_binop(BinOp binop, int lineno, Expr e1, Expr e2);
 extern  Expr    make_unop(UnOp unop, int lineno, Expr e1);
-extern  Expr    make_func_call(char *id, Exprs args);
+extern  Expr    make_call(char *id, Exprs args);
 
 extern  Expr    convert_int_to_real(Expr expr);
 

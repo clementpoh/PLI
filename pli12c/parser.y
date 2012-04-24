@@ -229,7 +229,7 @@ expr
     | NOT expr
         { $$ = make_unop(UNOP_NOT, pli12yylinenum, $2); }
     | ID LPAREN exprlist RPAREN
-        { $$ = make_func_call($1, $3); }
+        { $$ = make_call($1, $3); }
     ;
 
 binop

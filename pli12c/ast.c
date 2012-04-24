@@ -40,6 +40,81 @@ Decl    make_decl(char *id, Type t, Const init) {
     return new;
 }
 
+Stmt    make_assign(char *id, Expr e) {
+    Stmt new = checked_malloc(sizeof(Stmt));
+
+    new->t = TYPE_ASSIGN;
+    new->s.Uassign.id = id;
+    new->s.Uassign.expr = e;
+
+    return new;
+}
+
+Stmt    make_read(char *id) P
+    Stmt new = checked_malloc(sizeof(Stmt));
+
+    new->t = TYPE_READ;
+    new->s.Uread = id;
+
+    return new;
+
+}
+
+Stmt    make_write(Expr e) {
+    Stmt new = checked_malloc(sizeof(Stmt));
+
+    new->t = TYPE_WRITE;
+    new->s.Uwrite = e;
+
+    return new;
+}
+
+Stmt    make_if(Expr cond, Stmts then) {
+    Stmt new = checked_malloc(sizeof(Stmt));
+
+    new->t = TYPE_IF;
+    new->s.Uif.cond = cond;
+    new->s.Uif.then = then;
+
+    return new;
+}
+
+Stmt    make_else(Expr cond, Stmts then, Stmts other) {
+    Stmt new = checked_malloc(sizeof(Stmt));
+
+    new->t = TYPE_ELSE;
+    new->s.Uelse.cond = cond;
+    new->s.Uelse.then = then;
+    new->s.Uelse.other = other;
+
+    return new;
+}
+
+Stmt    make_while(Expr cond, Stmts rep) {
+    Stmt new = checked_malloc(sizeof(Stmt));
+
+    new->t = TYPE_WHILE;
+    new->s.Uwhile.cond = cond;
+    new->s.Uwhile.rep = rep;
+
+    return new;
+}
+
+Stmt    make_return(Expr e) {
+    Stmt new = checked_malloc(sizeof(Stmt));
+
+    new->t = TYPE_RETURN;
+    new->s.Ureturn = e;
+
+    return new;
+}
+
+Expr    make_ident(char *id);
+Expr    make_const(Const c);
+Expr    make_binop(BinOp binop, int lineno, Expr e1, Expr e2);
+Expr    make_unop(UnOp unop, int lineno, Expr e1);
+Expr    make_func_call(char *id, Exprs args);
+
 Const   make_int(int i) {
     Const new = checked_malloc(sizeof(Const));
 

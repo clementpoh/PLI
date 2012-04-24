@@ -119,23 +119,23 @@ struct s_func {
 struct s_assign {
     char *id;
     Expr expr;
-}
+};
 
 struct s_if {
     Expr    cond;
     Stmts   then;
-}
+};
 
 struct s_else {
     Expr    cond;
     Stmts   then;
     Stmts   other;
-}
+};
 
 struct s_while {
     Expr    cond;
     Stmts   rep;
-}
+};
 
 /* Lists */
 struct s_types {

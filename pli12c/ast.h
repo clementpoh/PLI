@@ -193,6 +193,7 @@ extern  Const   make_real(float r);
 extern  Const   make_bool(bool b);
 extern  Const   make_str(char *s);
 
+extern  Funcs   ins_func(Func f, Funcs fs);
 extern  Params  ins_param(Param p, Params ps);
 extern  Decls   ins_decl(Decl d, Decls ds);
 extern  Stmts   ins_stmt(Stmt s, Stmts ss);

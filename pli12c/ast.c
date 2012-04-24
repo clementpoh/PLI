@@ -73,6 +73,14 @@ Const   make_str(char *s) {
 }
 
 
+Funcs  ins_func(Func f, Funcs fs) {
+    Funcs new = checked_malloc(sizeof(Funcs));
+
+    new->f_first = f;
+    new->f_rest = fs;
+    return new;
+}
+
 Params  ins_param(Param p, Params ps) {
     Params new = checked_malloc(sizeof(Params));
 

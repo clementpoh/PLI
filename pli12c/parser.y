@@ -24,7 +24,7 @@ extern  void    pli12yyerror(const char *s);
     bool    Ubool;
     float   Ureal;
     Type    Utype;
-    Funcs   Ufunc;
+    Func    Ufunc;
     Const   Uconst;
 
     Params  Uparams;
@@ -102,7 +102,7 @@ extern  void    pli12yyerror(const char *s);
 
 %token  <Ustr>  ID
 
-%token  <Ustr>  TYPE
+%token  <Utype> TYPE
 
 %nonassoc OR 
 %nonassoc AND
@@ -138,15 +138,9 @@ extern  void    pli12yyerror(const char *s);
 
 programme
     : programme function
-        { 
-            parsed_prog->f_rest = parsed_prog->f_first;
-         
-        }
+        { ins_func($2, $1); }
     | function
-        { 
-            parsed_prog->f_rest = parsed_prog->f_first;
-            parsed_prog->f_first = $1;
-        }
+        { ins_func($1, NULL); }
     ;
 
 function

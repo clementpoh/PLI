@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
 #include "pli12c.h"
 #include "ast.h"
@@ -193,11 +194,16 @@ Const   make_str(char *s) {
 
 
 Funcs  ins_func(Func f, Funcs fs) {
-    Funcs new = checked_malloc(sizeof(*new));
+    Funcs new;
 
-    new->f_first = f;
-    new->f_rest = fs;
-    return new;
+    if(!fs || strcmp(f->id, fs->f_first->id) < 0) {
+        new = checked_malloc(sizeof(*new));
+        new->f_first = f;
+        new->f_rest = fs;
+        return new;
+    } else {
+        return ins_func(f, fs);
+    }
 }
 
 Params  ins_param(Param p, Params ps) {

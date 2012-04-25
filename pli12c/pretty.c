@@ -54,13 +54,19 @@ static void pretty_param(Param p) {
 static void pretty_decl(Decl d) {
     printf("declare %s ", d->id);
     pretty_type(d->type);
+
+    if(d->val) {
+        printf(" initialize to ");
+        pretty_const(d->val);
+    }
+
     printf(";\n");
 }
 
 static void pretty_stmt(Stmt s) {
     switch(s->t) {
         case STMT_ASSIGN:
-            printf("%s :=", s->s.Uassign.id);
+            printf("%s := ", s->s.Uassign.id);
             pretty_expr(s->s.Uassign.expr);
             printf(";\n");
             break;
@@ -80,7 +86,7 @@ static void pretty_stmt(Stmt s) {
             printf("    endif\n");
             break;
         case STMT_ELSE:
-            printf("if");
+            printf("if ");
             pretty_expr(s->s.Uelse.cond);
             printf(" then\n    ");
             pretty_stmts(s->s.Uelse.then);

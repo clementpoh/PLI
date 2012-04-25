@@ -139,7 +139,7 @@ extern  void    pli12yyerror(const char *s);
 
 programme
     : programme function
-        { parsed_prog = ins_func($2, $1); }
+        { parsed_prog = ins_func($2, parsed_prog); }
     | function
         { parsed_prog = ins_func($1, NULL); }
     ;
@@ -159,8 +159,8 @@ args
 params
     : param 
         { $$ = ins_param($1, NULL); }
-    | params COMMA param
-        { $$ = ins_param($3, $1); }
+    | param COMMA params
+        { $$ = ins_param($1, $3); }
     ;
 
 param 
@@ -169,8 +169,8 @@ param
     ;   
 
 decls
-    : decls decl
-        { $$ = ins_decl($2, $1); }
+    : decl decls 
+        { $$ = ins_decl($1, $2); }
     |   { $$ = NULL; }
     ;
 
@@ -182,8 +182,8 @@ decl
     ;
 
 stmtlist
-    : stmtlist stmt
-        { $$ = ins_stmt($2, $1); }
+    : stmt stmtlist
+        { $$ = ins_stmt($1, $2); }
     | stmt
         { $$ = ins_stmt($1, NULL); }
     ;
@@ -206,8 +206,8 @@ stmt
     ;
 
 exprlist
-    : exprlist COMMA expr
-        { $$ = ins_expr($3, $1); }
+    : expr COMMA exprlist
+        { $$ = ins_expr($1, $3); }
     | expr
         { $$ = ins_expr($1, NULL); }
     ;

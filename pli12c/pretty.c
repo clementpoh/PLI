@@ -1,5 +1,5 @@
 /*
-** vim: ts=4 sw=4 expandtab
+** vim: ts=4 sw=4 expandtab foldmethod=indent
 */
 /*
 ** This module contains the prettyprinter for PLI12 programs.

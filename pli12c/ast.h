@@ -73,7 +73,7 @@ typedef enum {
 struct s_decl {
     char    *id;
     Type    type;
-    Val     val;   
+    Const   val;   
 };
 
 struct s_param {
@@ -210,7 +210,7 @@ struct s_stmts {
 
 extern  Func    make_func(char *id, Params ps, Type t, Decls ds, Stmts ss); 
 extern  Param   make_param(char *id, Type t); 
-extern  Decl    make_decl(char *id, Type t, Const init);
+extern  Decl    make_decl(char *id, Type t, Const val);
 
 extern  Stmt    make_assign(char *id, Expr e);
 extern  Stmt    make_read(char *id);

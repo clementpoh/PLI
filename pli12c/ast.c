@@ -29,16 +29,12 @@ Param   make_param(char *id, Type t) {
     return new;
 }
 
-Decl    make_decl(char *id, Type t, Const init) {
+Decl    make_decl(char *id, Type t, Const val) {
     Decl new = checked_malloc(sizeof(Decl));
 
     new->id = id;
     new->type = t;
-
-    if (init) {
-        assert(t == init->type);
-        new->val = init->val;
-    }
+    new->val = val;
 
     return new;
 }

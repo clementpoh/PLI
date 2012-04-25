@@ -9,7 +9,7 @@
 #include "ast.h"
 
 Func    make_func(char *id, Params ps, Type t, Decls ds, Stmts ss) {
-    Func new = checked_malloc(sizeof(Func));
+    Func new = checked_malloc(sizeof(*new));
 
     new->id = id;
     new->args = ps;
@@ -21,7 +21,7 @@ Func    make_func(char *id, Params ps, Type t, Decls ds, Stmts ss) {
 }
 
 Param   make_param(char *id, Type t) {
-    Param new = checked_malloc(sizeof(Param));
+    Param new = checked_malloc(sizeof(*new));
 
     new->id = id;
     new->type = t;
@@ -30,7 +30,7 @@ Param   make_param(char *id, Type t) {
 }
 
 Decl    make_decl(char *id, Type t, Const val) {
-    Decl new = checked_malloc(sizeof(Decl));
+    Decl new = checked_malloc(sizeof(*new));
 
     new->id = id;
     new->type = t;
@@ -40,7 +40,7 @@ Decl    make_decl(char *id, Type t, Const val) {
 }
 
 Stmt    make_assign(char *id, Expr e) {
-    Stmt new = checked_malloc(sizeof(Stmt));
+    Stmt new = checked_malloc(sizeof(*new));
 
     new->t = STMT_ASSIGN;
     new->s.Uassign.id = id;
@@ -50,7 +50,7 @@ Stmt    make_assign(char *id, Expr e) {
 }
 
 Stmt    make_read(char *id) {
-    Stmt new = checked_malloc(sizeof(Stmt));
+    Stmt new = checked_malloc(sizeof(*new));
 
     new->t = STMT_READ;
     new->s.Uread = id;
@@ -59,7 +59,7 @@ Stmt    make_read(char *id) {
 }
 
 Stmt    make_write(Expr e) {
-    Stmt new = checked_malloc(sizeof(Stmt));
+    Stmt new = checked_malloc(sizeof(*new));
 
     new->t = STMT_WRITE;
     new->s.Uwrite = e;
@@ -68,7 +68,7 @@ Stmt    make_write(Expr e) {
 }
 
 Stmt    make_if(Expr cond, Stmts then) {
-    Stmt new = checked_malloc(sizeof(Stmt));
+    Stmt new = checked_malloc(sizeof(*new));
 
     new->t = STMT_IF;
     new->s.Uif.cond = cond;
@@ -78,7 +78,7 @@ Stmt    make_if(Expr cond, Stmts then) {
 }
 
 Stmt    make_else(Expr cond, Stmts then, Stmts other) {
-    Stmt new = checked_malloc(sizeof(Stmt));
+    Stmt new = checked_malloc(sizeof(*new));
 
     new->t = STMT_ELSE;
     new->s.Uelse.cond = cond;
@@ -89,7 +89,7 @@ Stmt    make_else(Expr cond, Stmts then, Stmts other) {
 }
 
 Stmt    make_while(Expr cond, Stmts rep) {
-    Stmt new = checked_malloc(sizeof(Stmt));
+    Stmt new = checked_malloc(sizeof(*new));
 
     new->t = STMT_WHILE;
     new->s.Uwhile.cond = cond;
@@ -99,7 +99,7 @@ Stmt    make_while(Expr cond, Stmts rep) {
 }
 
 Stmt    make_return(Expr e) {
-    Stmt new = checked_malloc(sizeof(Stmt));
+    Stmt new = checked_malloc(sizeof(*new));
 
     new->t = STMT_RETURN;
     new->s.Ureturn = e;
@@ -108,7 +108,7 @@ Stmt    make_return(Expr e) {
 }
 
 Expr    make_ident(char *id) {
-    Expr new = checked_malloc(sizeof(Expr));
+    Expr new = checked_malloc(sizeof(*new));
 
     new->t = EXPR_ID;
     new->e.Uid = id;
@@ -117,7 +117,7 @@ Expr    make_ident(char *id) {
 }
 
 Expr    make_const(Const c) {
-    Expr new = checked_malloc(sizeof(Expr));
+    Expr new = checked_malloc(sizeof(*new));
 
     new->t = EXPR_CONST;
     new->e.Uconst = c;
@@ -126,7 +126,7 @@ Expr    make_const(Const c) {
 }
 
 Expr    make_binop(BinOp binop, int lineno, Expr e1, Expr e2) {
-    Expr new = checked_malloc(sizeof(Expr));
+    Expr new = checked_malloc(sizeof(*new));
 
     /* TODO: Work out the type of the returned expression. */
     new->t = EXPR_BINOP;
@@ -138,7 +138,7 @@ Expr    make_binop(BinOp binop, int lineno, Expr e1, Expr e2) {
 }
 
 Expr    make_unop(UnOp unop, int lineno, Expr e) {
-    Expr new = checked_malloc(sizeof(Expr));
+    Expr new = checked_malloc(sizeof(*new));
 
     /* TODO: Work out the type of the returned expression. */
     new->t = EXPR_UNOP;
@@ -149,7 +149,7 @@ Expr    make_unop(UnOp unop, int lineno, Expr e) {
 }
 
 Expr    make_call(char *id, Exprs args) {
-    Expr new = checked_malloc(sizeof(Expr));
+    Expr new = checked_malloc(sizeof(*new));
 
     /* TODO: Work out the type of the returned expression. */
     new->t = EXPR_FUNC;
@@ -160,7 +160,7 @@ Expr    make_call(char *id, Exprs args) {
 }
 
 Const   make_int(int i) {
-    Const new = checked_malloc(sizeof(Const));
+    Const new = checked_malloc(sizeof(*new));
 
     new->type = TYPE_INT;
     new->val.Uint = i;
@@ -168,7 +168,7 @@ Const   make_int(int i) {
 }
 
 Const   make_real(float r) {
-    Const new = checked_malloc(sizeof(Const));
+    Const new = checked_malloc(sizeof(*new));
 
     new->type = TYPE_REAL;
     new->val.Ureal = r;
@@ -176,7 +176,7 @@ Const   make_real(float r) {
 }
 
 Const   make_bool(bool b) {
-    Const new = checked_malloc(sizeof(Const));
+    Const new = checked_malloc(sizeof(*new));
 
     new->type = TYPE_BOOL;
     new->val.Ubool = b;
@@ -184,7 +184,7 @@ Const   make_bool(bool b) {
 }
 
 Const   make_str(char *s) {
-    Const new = checked_malloc(sizeof(Const));
+    Const new = checked_malloc(sizeof(*new));
 
     new->type = TYPE_STRING;
     new->val.Ustr = s;
@@ -193,7 +193,7 @@ Const   make_str(char *s) {
 
 
 Funcs  ins_func(Func f, Funcs fs) {
-    Funcs new = checked_malloc(sizeof(Funcs));
+    Funcs new = checked_malloc(sizeof(*new));
 
     new->f_first = f;
     new->f_rest = fs;
@@ -201,7 +201,7 @@ Funcs  ins_func(Func f, Funcs fs) {
 }
 
 Params  ins_param(Param p, Params ps) {
-    Params new = checked_malloc(sizeof(Params));
+    Params new = checked_malloc(sizeof(*new));
 
     new->p_first = p;
     new->p_rest = ps;
@@ -209,7 +209,7 @@ Params  ins_param(Param p, Params ps) {
 }
 
 Decls   ins_decl(Decl d, Decls ds) {
-    Decls new = checked_malloc(sizeof(Decls));
+    Decls new = checked_malloc(sizeof(*new));
 
     new->d_first = d;
     new->d_rest = ds;
@@ -217,7 +217,7 @@ Decls   ins_decl(Decl d, Decls ds) {
 }
 
 Stmts   ins_stmt(Stmt s, Stmts ss) {
-    Stmts new = checked_malloc(sizeof(Stmts));
+    Stmts new = checked_malloc(sizeof(*new));
 
     new->s_first = s;
     new->s_rest = ss;
@@ -225,7 +225,7 @@ Stmts   ins_stmt(Stmt s, Stmts ss) {
 }
 
 Exprs   ins_expr(Expr e, Exprs es) {
-    Exprs new = checked_malloc(sizeof(Exprs));
+    Exprs new = checked_malloc(sizeof(*new));
 
     new->e_first = e;
     new->e_rest = es;

@@ -178,24 +178,9 @@ struct s_stmt {
 
 
 /* Lists */
-struct s_types {
-    Type    t_first;
-    Types   t_rest;
-};
-
-struct s_exprs {
-    Expr    e_first;
-    Exprs   e_rest;
-};
-
-struct s_decls {
-    Decl    d_first;
-    Decls   d_rest;
-};
-
-struct s_stmts {
-    Stmt    s_first;
-    Stmts   s_rest;
+struct s_funcs {
+    Func    f_first;
+    Funcs   f_rest;
 };
 
 struct s_params {
@@ -203,9 +188,24 @@ struct s_params {
     Params  p_rest;
 };
 
-struct s_funcs {
-    Func    f_first;
-    Funcs   f_rest;
+struct s_types {
+    Type    t_first;
+    Types   t_rest;
+};
+
+struct s_decls {
+    Decl    d_first;
+    Decls   d_rest;
+};
+
+struct s_exprs {
+    Expr    e_first;
+    Exprs   e_rest;
+};
+
+struct s_stmts {
+    Stmt    s_first;
+    Stmts   s_rest;
 };
 
 extern  Func    make_func(char *id, Params ps, Type t, Decls ds, Stmts ss); 

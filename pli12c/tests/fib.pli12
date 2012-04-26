@@ -1,4 +1,5 @@
 # This program computes the Nth fibonacci number.
+# Clement Poh: cjpoh 269508
 
 function main() returns int
 begin

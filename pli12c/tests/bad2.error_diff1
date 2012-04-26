@@ -1,0 +1,37 @@
+1,25c1,10
+< function f(x: int, y: int) returns int
+< begin
+<     declare x int;
+<     declare z real;
+<     declare z real;
+< 
+<     read z;
+<     if z + 5.000000 then
+<         while z / 2 do
+<             write z;
+<             z := z + 1;
+<         endwhile
+<     else
+<         write 0.000000;
+<     endif
+<     return trunc(z);
+< end
+< 
+< function main(u: bool, u: bool) returns real
+< begin
+<     declare x real;
+<     declare x int;
+< 
+<     write f(x, z);
+< end
+---
+> bad2.pli12, 1: return value of main has type real; expected int
+> bad2.pli12, 1: main has arguments
+> bad2.pli12, 1: variable 'u' redefined
+> bad2.pli12, 4: variable 'x' redefined
+> bad2.pli12, 6: reference to undefined variable 'z'
+> bad2.pli12, 6: type mismatch in argument 1 of call to 'f': actual real, expected int
+> bad2.pli12, 11: variable 'x' redefined
+> bad2.pli12, 13: variable 'z' redefined
+> bad2.pli12, 17: condition of if-then-else is real; should be bool
+> bad2.pli12, 18: condition of while loop is real; should be bool

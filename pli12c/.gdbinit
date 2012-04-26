@@ -1,6 +1,7 @@
 break ins_func
-break pretty_prog
+break pretty_stmts
+break pretty_expr
 
-run -p ../tests/fib.pli12 out
+run -p tests/bad3.pli12 out
 display *parsed_prog->f_first
-display *f
+display *parsed_prog->f->rest->f_first

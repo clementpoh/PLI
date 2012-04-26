@@ -9,10 +9,12 @@
 #include    "ast.h"
 #include    "pretty.h"
 
+#define INDENT "    "
+
 static void pretty_func(Func f);
 static void pretty_param(Param p);
 static void pretty_decl(Decl d);
-static void pretty_stmt(Stmt s);
+static void pretty_stmt(Stmt s, int indent);
 static void pretty_expr(Expr e);
 static void pretty_binop(BinOp op);
 static void pretty_unop(UnOp op);
@@ -20,13 +22,14 @@ static void pretty_type(Type t);
 static void pretty_const(Const c);
 static void pretty_call(Exprs es);
 
+
 /* Lists */
 static void pretty_funcs(Funcs fs);
 static void pretty_args(Params ps);
 static void pretty_params(Params ps);
 static void pretty_decls(Decls ds);
-static void pretty_stmts(Stmts ss);
-static void pretty_exprs(Exprs es);
+static void pretty_stmts(Stmts ss, int indent);
+static void put_indent(int indent);
 
 void
 pretty_prog(FILE *fp, Funcs prog_funcs)
@@ -42,7 +45,7 @@ static void pretty_func(Func f) {
     printf("\nbegin\n");
     pretty_decls(f->decls);
     printf("\n");
-    pretty_stmts(f->stmts);
+    pretty_stmts(f->stmts, 1);
     printf("end\n\n");
 }
 
@@ -63,7 +66,7 @@ static void pretty_decl(Decl d) {
     printf(";\n");
 }
 
-static void pretty_stmt(Stmt s) {
+static void pretty_stmt(Stmt s, int indent) {
     switch(s->t) {
         case STMT_ASSIGN:
             printf("%s := ", s->s.Uassign.id);
@@ -81,25 +84,29 @@ static void pretty_stmt(Stmt s) {
         case STMT_IF:
             printf("if ");
             pretty_expr(s->s.Uif.cond);
-            printf(" then\n     ");
-            pretty_stmts(s->s.Uif.then);
-            printf("    endif\n");
+            printf(" then\n");
+            pretty_stmts(s->s.Uif.then, indent + 1);
+            put_indent(indent);
+            printf("endif\n");
             break;
         case STMT_ELSE:
             printf("if ");
             pretty_expr(s->s.Uelse.cond);
-            printf(" then\n    ");
-            pretty_stmts(s->s.Uelse.then);
-            printf("    else\n    ");
-            pretty_stmts(s->s.Uelse.other);
-            printf("    endif\n");
+            printf(" then\n");
+            pretty_stmts(s->s.Uelse.then, indent + 1);
+            put_indent(indent);
+            printf("else\n");
+            pretty_stmts(s->s.Uelse.other, indent + 1);
+            put_indent(indent);
+            printf("endif\n");
             break;
         case STMT_WHILE:
             printf("while ");
             pretty_expr(s->s.Uwhile.cond);
-            printf(" do\n    ");
-            pretty_stmts(s->s.Uwhile.rep);
-            printf("    endwhile\n");
+            printf(" do\n");
+            pretty_stmts(s->s.Uwhile.rep, indent + 1);
+            put_indent(indent);
+            printf("endwhile\n");
             break;
         case STMT_RETURN:
             printf("return ");
@@ -205,15 +212,11 @@ static void pretty_const(Const c) {
     }
 }
 
-static void pretty_call(Exprs es) {
-    printf("(");
-    while(es->e_rest) {
-        pretty_expr(es->e_first);
-        printf(",");
-        es = es->e_rest;
+static void put_indent(int indent) {
+    int i;
+    for(i = 0; i < indent; i++) {
+        printf(INDENT);
     }
-    pretty_expr(es->e_first);
-    printf(")");
 }
 
 /* Lists */
@@ -228,7 +231,7 @@ static void pretty_args(Params ps) {
     printf("(");
     if(ps) {
         pretty_param(ps->p_first);
-        pretty_params(ps);
+        pretty_params(ps->p_rest);
     }
     printf(")");
 }
@@ -243,23 +246,28 @@ static void pretty_params(Params ps) {
 
 static void pretty_decls(Decls ds) {
     while(ds) {
-        printf("    ");
+        put_indent(1);
         pretty_decl(ds->d_first);
         ds = ds->d_rest;
     }
 }
 
-static void pretty_stmts(Stmts ss) {
+static void pretty_stmts(Stmts ss, int indent) {
     while(ss) {
-        printf("    ");
-        pretty_stmt(ss->s_first);
+        put_indent(indent);
+        pretty_stmt(ss->s_first, indent);
         ss = ss->s_rest;
     }
 }
 
-static void pretty_exprs(Exprs es) {
-    while(es) {
+static void pretty_call(Exprs es) {
+    printf("(");
+    while(es->e_rest) {
         pretty_expr(es->e_first);
+        printf(",");
         es = es->e_rest;
     }
+    pretty_expr(es->e_first);
+    printf(")");
 }
+

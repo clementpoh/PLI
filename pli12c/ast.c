@@ -202,7 +202,8 @@ Funcs  ins_func(Func f, Funcs fs) {
         new->f_rest = fs;
         return new;
     } else {
-        return ins_func(f, fs);
+        ins_func(f, fs->f_rest);
+        return fs;
     }
 }
 

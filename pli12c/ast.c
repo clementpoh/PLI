@@ -1,4 +1,10 @@
-/*
+/* ast.c
+ * Clement Poh (cjpoh) 269508
+ *
+ * Repository Location:
+ * /home/stude1/c/cjpoh/90045/
+ * Git repository.
+ *
  * vim: ts=4 sw=4 expandtab foldmethod=indent
 */
 

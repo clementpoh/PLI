@@ -1,8 +1,0 @@
-5c5
-<     write x + (" is " + true);
----
->     write (x + " is ") + true;
-7c7
-<     write x + (0.815000 + "xyz");
----
->     write (x + 0.815000) + "xyz";

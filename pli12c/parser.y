@@ -177,7 +177,7 @@ decls
 decl
     : DECLARE ID TYPE SEMICOLON
         { $$ = make_decl($2, $3, NULL); }
-    | DECLARE ID TYPE INITIALIZE TO constant
+    | DECLARE ID TYPE INITIALIZE TO constant SEMICOLON
         { $$ = make_decl($2, $3, $6); }
     ;
 

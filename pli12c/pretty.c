@@ -16,6 +16,7 @@ static void pretty_param(Param p);
 static void pretty_decl(Decl d);
 static void pretty_stmt(Stmt s, int indent);
 static void pretty_expr(Expr e);
+static void pretty_op_arg(Expr e);
 static void pretty_binop(BinOp op);
 static void pretty_unop(UnOp op);
 static void pretty_type(Type t);
@@ -46,7 +47,7 @@ static void pretty_func(Func f) {
     pretty_decls(f->decls);
     printf("\n");
     pretty_stmts(f->stmts, 1);
-    printf("end\n\n");
+    printf("end\n");
 }
 
 static void pretty_param(Param p) {
@@ -127,18 +128,34 @@ static void pretty_expr(Expr e) {
             pretty_const(e->e.Uconst);
             break;
         case EXPR_BINOP:
-            pretty_expr(e->e.Ubinop.e1);
+            pretty_op_arg(e->e.Ubinop.e1);
             pretty_binop(e->e.Ubinop.op);
-            pretty_expr(e->e.Ubinop.e2);
+            pretty_op_arg(e->e.Ubinop.e2);
             break;
         case EXPR_UNOP:
             pretty_unop(e->e.Uunop.op);
-            pretty_expr(e->e.Uunop.e);
+            pretty_op_arg(e->e.Uunop.e);
             break;
         case EXPR_FUNC:
             printf("%s", e->e.Ucall.id);
             pretty_call(e->e.Ucall.args);
             break;
+    }
+}
+
+static void pretty_op_arg(Expr e) {
+    switch(e->t) {
+        case EXPR_BINOP:
+        case EXPR_FUNC:
+        case EXPR_UNOP:
+            printf("(");
+            pretty_expr(e);
+            printf(")");
+            break;
+        case EXPR_CONST:
+        case EXPR_ID:
+        default:
+            pretty_expr(e);
     }
 }
 
@@ -154,10 +171,10 @@ static void pretty_type(Type t) {
 static void pretty_unop(UnOp op) {
     switch(op) {
         case UNOP_NOT: 
-            printf(" not ");
+            printf("not ");
             break;
         case UNOP_UMINUS: 
-            printf(" -");
+            printf("- ");
             break;
         default:
             printf("ERROR: Operator not found");
@@ -204,7 +221,7 @@ static void pretty_const(Const c) {
             printf("%f", c->val.Ureal);
             break;
         case TYPE_BOOL: 
-            printf("%d", c->val.Ubool);
+            printf("%s", c->val.Ubool? "true" : "false");
             break;
         case TYPE_STRING: 
             printf("%s", c->val.Ustr);
@@ -223,7 +240,10 @@ static void put_indent(int indent) {
 static void pretty_funcs(Funcs fs) {
     if(fs) {
         pretty_func(fs->f_first);
-        pretty_funcs(fs->f_rest);
+        if(fs->f_rest) {
+            printf("\n");
+            pretty_funcs(fs->f_rest);
+        }
     }
 }
 
@@ -264,7 +284,7 @@ static void pretty_call(Exprs es) {
     printf("(");
     while(es->e_rest) {
         pretty_expr(es->e_first);
-        printf(",");
+        printf(", ");
         es = es->e_rest;
     }
     pretty_expr(es->e_first);

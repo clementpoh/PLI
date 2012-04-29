@@ -146,7 +146,7 @@ programme
 
 function
     : FUNCTION ID args RETURNS TYPE BEGINS decls stmtlist END
-        { $$ = make_func($2, $3, $5, $7, $8); }
+        { $$ = make_func($2, $3, $5, $7, $8, USER_DEFINED); }
     ;
 
 args

@@ -8,10 +8,12 @@
 #include    "ast.h"
 #include    "analyze.h"
 
+static void verify_types(Funcs prog_funcs);
+
 Funcs
 analyze_prog(Funcs prog_funcs)
 {
-    /* This is only a placeholder. */
+    // verify_types(prog_funcs);
     return prog_funcs;
 }
 

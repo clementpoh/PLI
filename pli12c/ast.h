@@ -219,7 +219,7 @@ struct s_stmts {
     Stmts   s_rest;
 };
 
-extern  Func    make_func(char *id, Params ps, Type t, Decls ds, Stmts stmts); 
+extern  Func    make_func(char *id, Params ps, Type t, Decls ds, Stmts stmts, Status sts); 
 extern  Param   make_param(char *id, Type t); 
 extern  Decl    make_decl(char *id, Type t, Const val);
 

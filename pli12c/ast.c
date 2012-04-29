@@ -15,7 +15,7 @@
 #include "pli12c.h"
 #include "ast.h"
 
-Func    make_func(char *id, Params ps, Type t, Decls ds, Stmts ss) {
+Func    make_func(char *id, Params ps, Type t, Decls ds, Stmts ss, Status sts) {
     Func new = checked_malloc(sizeof(*new));
 
     new->id = id;
@@ -23,6 +23,9 @@ Func    make_func(char *id, Params ps, Type t, Decls ds, Stmts ss) {
     new->type = t;
     new->decls = ds;
     new->stmts = ss;
+    new->sts = sts;
+
+    new->lineno = pli12yylinenum;
 
     return new;
 }
@@ -120,6 +123,7 @@ Expr    make_ident(char *id) {
     new->t = EXPR_ID;
     new->e.Uid = id;
 
+    new->lineno = pli12yylinenum;
     return new;
 }
 
@@ -129,6 +133,7 @@ Expr    make_const(Const c) {
     new->t = EXPR_CONST;
     new->e.Uconst = c;
 
+    new->lineno = pli12yylinenum;
     return new;
 }
 
@@ -141,6 +146,7 @@ Expr    make_binop(BinOp binop, int lineno, Expr e1, Expr e2) {
     new->e.Ubinop.e1 = e1;
     new->e.Ubinop.e2 = e2;
 
+    new->lineno = pli12yylinenum;
     return new;
 }
 
@@ -152,6 +158,7 @@ Expr    make_unop(UnOp unop, int lineno, Expr e) {
     new->e.Uunop.op = unop;
     new->e.Uunop.e = e;
 
+    new->lineno = pli12yylinenum;
     return new;
 }
 
@@ -163,6 +170,7 @@ Expr    make_call(char *id, Exprs args) {
     new->e.Ucall.id = id;
     new->e.Ucall.args = args;
 
+    new->lineno = pli12yylinenum;
     return new;
 }
 

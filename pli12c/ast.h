@@ -74,11 +74,15 @@ struct s_decl {
     char    *id;
     Type    type;
     Const   val;   
+
+    int lineno;
 };
 
 struct s_param {
     char    *id;
     Type    type;
+
+    int lineno;
 };
 
 struct s_func {
@@ -87,6 +91,9 @@ struct s_func {
     Type    type;
     Decls   decls;
     Stmts   stmts;
+    Status  sts;
+
+    int lineno;
 };
 
 /* Expressions */
@@ -126,6 +133,8 @@ struct s_expr {
     Type r;
     ExprType t;
     Expression e;
+
+    int lineno;
 };
 
 
@@ -174,6 +183,8 @@ typedef union {
 struct s_stmt {
     StateType t;
     Statement s;
+
+    int lineno;
 };
 
 
@@ -208,7 +219,7 @@ struct s_stmts {
     Stmts   s_rest;
 };
 
-extern  Func    make_func(char *id, Params ps, Type t, Decls ds, Stmts ss); 
+extern  Func    make_func(char *id, Params ps, Type t, Decls ds, Stmts stmts); 
 extern  Param   make_param(char *id, Type t); 
 extern  Decl    make_decl(char *id, Type t, Const val);
 

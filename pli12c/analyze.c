@@ -17,4 +17,6 @@ analyze_prog(Funcs prog_funcs)
 
         func = prog_funcs->f_rest;
     }
+
+    return func;
 }

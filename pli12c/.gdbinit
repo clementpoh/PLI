@@ -1,6 +1,4 @@
-break make_binop
-break make_unop
-
+break pretty_prog
 
 run -p tests/fib.pli12 out
 display *parsed_prog

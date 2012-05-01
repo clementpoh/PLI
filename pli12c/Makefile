@@ -48,7 +48,7 @@ realclean:	clean
 clobber: realclean
 
 .PHONY: test
-test:	pli12c
+test:	pli12c clean
 	cd tests; ./Runtests -p
 
 $(OBJ):		$(HDR)

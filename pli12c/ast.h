@@ -48,7 +48,8 @@ typedef enum {
     TYPE_INT,
     TYPE_REAL,
     TYPE_BOOL,
-    TYPE_STRING
+    TYPE_STRING,
+    TYPE_ERROR = -1
 } Type;
 
 typedef enum {
@@ -91,7 +92,6 @@ struct s_func {
     Type    type;
     Decls   decls;
     Stmts   stmts;
-    Status  sts;
 
     int lineno;
 };
@@ -219,7 +219,7 @@ struct s_stmts {
     Stmts   s_rest;
 };
 
-extern  Func    make_func(char *id, Params ps, Type t, Decls ds, Stmts stmts, Status sts); 
+extern  Func    make_func(char *id, Params ps, Type t, Decls ds, Stmts stmts); 
 extern  Param   make_param(char *id, Type t); 
 extern  Decl    make_decl(char *id, Type t, Const val);
 
@@ -233,8 +233,8 @@ extern  Stmt    make_return(Expr e);
 
 extern  Expr    make_ident(char *id);
 extern  Expr    make_const(Const c);
-extern  Expr    make_binop(BinOp binop, int lineno, Expr e1, Expr e2);
-extern  Expr    make_unop(UnOp unop, int lineno, Expr e);
+extern  Expr    make_binop(BinOp binop, Expr e1, Expr e2);
+extern  Expr    make_unop(UnOp unop, Expr e);
 extern  Expr    make_call(char *id, Exprs args);
 
 extern  Expr    convert_int_to_real(Expr expr);
@@ -249,6 +249,7 @@ extern  Params  ins_param(Param p, Params ps);
 extern  Decls   ins_decl(Decl d, Decls ds);
 extern  Stmts   ins_stmt(Stmt s, Stmts ss);
 extern  Exprs   ins_expr(Expr e, Exprs es);
+extern  Types   ins_type(Type t, Types ts);
 
 
 #endif  /* AST_H */

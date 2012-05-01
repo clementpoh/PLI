@@ -8,13 +8,13 @@
 #include    "ast.h"
 #include    "analyze.h"
 
-static void verify_types(Funcs prog_funcs);
-
 Funcs
 analyze_prog(Funcs prog_funcs)
 {
-    // verify_types(prog_funcs);
-    return prog_funcs;
-}
+    Funcs func = prog_funcs;
+    while(func) {
+        // add_user_function(func);
 
-/* This is for you to fill in */
+        func = prog_funcs->f_rest;
+    }
+}

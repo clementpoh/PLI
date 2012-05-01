@@ -15,7 +15,7 @@
 #include "pli12c.h"
 #include "ast.h"
 
-Func    make_func(char *id, Params ps, Type t, Decls ds, Stmts ss, Status sts) {
+Func    make_func(char *id, Params ps, Type t, Decls ds, Stmts ss) {
     Func new = checked_malloc(sizeof(*new));
 
     new->id = id;
@@ -23,7 +23,6 @@ Func    make_func(char *id, Params ps, Type t, Decls ds, Stmts ss, Status sts) {
     new->type = t;
     new->decls = ds;
     new->stmts = ss;
-    new->sts = sts;
 
     new->lineno = pli12yylinenum;
 
@@ -36,6 +35,8 @@ Param   make_param(char *id, Type t) {
     new->id = id;
     new->type = t;
 
+    new->lineno = pli12yylinenum;
+
     return new;
 }
 
@@ -45,6 +46,8 @@ Decl    make_decl(char *id, Type t, Const val) {
     new->id = id;
     new->type = t;
     new->val = val;
+
+    new->lineno = pli12yylinenum;
 
     return new;
 }
@@ -56,6 +59,8 @@ Stmt    make_assign(char *id, Expr e) {
     new->s.Uassign.id = id;
     new->s.Uassign.expr = e;
 
+    new->lineno = pli12yylinenum;
+
     return new;
 }
 
@@ -64,6 +69,8 @@ Stmt    make_read(char *id) {
 
     new->t = STMT_READ;
     new->s.Uread = id;
+
+    new->lineno = pli12yylinenum;
 
     return new;
 }
@@ -74,6 +81,8 @@ Stmt    make_write(Expr e) {
     new->t = STMT_WRITE;
     new->s.Uwrite = e;
 
+    new->lineno = pli12yylinenum;
+
     return new;
 }
 
@@ -83,6 +92,8 @@ Stmt    make_if(Expr cond, Stmts then) {
     new->t = STMT_IF;
     new->s.Uif.cond = cond;
     new->s.Uif.then = then;
+
+    new->lineno = pli12yylinenum;
 
     return new;
 }
@@ -95,6 +106,8 @@ Stmt    make_else(Expr cond, Stmts then, Stmts other) {
     new->s.Uelse.then = then;
     new->s.Uelse.other = other;
 
+    new->lineno = pli12yylinenum;
+
     return new;
 }
 
@@ -105,6 +118,8 @@ Stmt    make_while(Expr cond, Stmts rep) {
     new->s.Uwhile.cond = cond;
     new->s.Uwhile.rep = rep;
 
+    new->lineno = pli12yylinenum;
+
     return new;
 }
 
@@ -113,6 +128,8 @@ Stmt    make_return(Expr e) {
 
     new->t = STMT_RETURN;
     new->s.Ureturn = e;
+
+    new->lineno = pli12yylinenum;
 
     return new;
 }
@@ -124,6 +141,7 @@ Expr    make_ident(char *id) {
     new->e.Uid = id;
 
     new->lineno = pli12yylinenum;
+
     return new;
 }
 
@@ -134,10 +152,11 @@ Expr    make_const(Const c) {
     new->e.Uconst = c;
 
     new->lineno = pli12yylinenum;
+
     return new;
 }
 
-Expr    make_binop(BinOp binop, int lineno, Expr e1, Expr e2) {
+Expr    make_binop(BinOp binop, Expr e1, Expr e2) {
     Expr new = checked_malloc(sizeof(*new));
 
     /* TODO: Work out the type of the returned expression. */
@@ -147,10 +166,11 @@ Expr    make_binop(BinOp binop, int lineno, Expr e1, Expr e2) {
     new->e.Ubinop.e2 = e2;
 
     new->lineno = pli12yylinenum;
+
     return new;
 }
 
-Expr    make_unop(UnOp unop, int lineno, Expr e) {
+Expr    make_unop(UnOp unop, Expr e) {
     Expr new = checked_malloc(sizeof(*new));
 
     /* TODO: Work out the type of the returned expression. */
@@ -159,6 +179,7 @@ Expr    make_unop(UnOp unop, int lineno, Expr e) {
     new->e.Uunop.e = e;
 
     new->lineno = pli12yylinenum;
+
     return new;
 }
 
@@ -171,6 +192,7 @@ Expr    make_call(char *id, Exprs args) {
     new->e.Ucall.args = args;
 
     new->lineno = pli12yylinenum;
+
     return new;
 }
 
@@ -250,5 +272,14 @@ Exprs   ins_expr(Expr e, Exprs es) {
 
     new->e_first = e;
     new->e_rest = es;
+    return new;
+}
+
+
+Types   ins_type(Type t, Types ts) {
+    Types new = checked_malloc(sizeof(*new));
+
+    new->t_first = t;
+    new->t_rest = ts;
     return new;
 }

@@ -165,6 +165,7 @@ static void pretty_type(FILE *fp, Type t) {
         case TYPE_REAL: fprintf(fp, "real");     break;
         case TYPE_BOOL: fprintf(fp, "bool");     break;
         case TYPE_STRING: fprintf(fp, "string"); break;
+        case TYPE_ERROR: fprintf(fp, "error"); break;
     }
 }
 
@@ -226,6 +227,7 @@ static void pretty_const(FILE *fp, Const c) {
         case TYPE_STRING: 
             fprintf(fp, "%s", c->val.Ustr);
             break;
+        case TYPE_ERROR: fprintf(fp, "error"); break;
     }
 }
 

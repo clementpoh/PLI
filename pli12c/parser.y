@@ -146,7 +146,7 @@ programme
 
 function
     : FUNCTION ID args RETURNS TYPE BEGINS decls stmtlist END
-        { $$ = make_func($2, $3, $5, $7, $8, USER_DEFINED); }
+        { $$ = make_func($2, $3, $5, $7, $8); }
     ;
 
 args
@@ -222,38 +222,38 @@ expr
     | LPAREN expr RPAREN
         { $$ = $2; }
     | SUB expr %prec UMINUS
-        { $$ = make_unop(UNOP_UMINUS, pli12yylinenum, $2); }
+        { $$ = make_unop(UNOP_UMINUS, $2); }
     | NOT expr
-        { $$ = make_unop(UNOP_NOT, pli12yylinenum, $2); }
+        { $$ = make_unop(UNOP_NOT, $2); }
     | ID LPAREN exprlist RPAREN
         { $$ = make_call($1, $3); }
     ;
 
 binexpr
     : expr OR expr  
-        { $$ = make_binop(BINOP_OR, pli12yylinenum, $1, $3); }
+        { $$ = make_binop(BINOP_OR, $1, $3); }
     | expr AND expr
-        { $$ = make_binop(BINOP_AND, pli12yylinenum, $1, $3); }
+        { $$ = make_binop(BINOP_AND,$1, $3); }
     | expr EQ expr  
-        { $$ = make_binop(BINOP_EQ, pli12yylinenum, $1, $3); }
+        { $$ = make_binop(BINOP_EQ, $1, $3); }
     | expr NE expr  
-        { $$ = make_binop(BINOP_NE, pli12yylinenum, $1, $3); }
+        { $$ = make_binop(BINOP_NE, $1, $3); }
     | expr LT expr  
-        { $$ = make_binop(BINOP_LT, pli12yylinenum, $1, $3); }
+        { $$ = make_binop(BINOP_LT, $1, $3); }
     | expr LE expr  
-        { $$ = make_binop(BINOP_LE, pli12yylinenum, $1, $3); }
+        { $$ = make_binop(BINOP_LE, $1, $3); }
     | expr GT expr  
-        { $$ = make_binop(BINOP_GT, pli12yylinenum, $1, $3); }
+        { $$ = make_binop(BINOP_GT, $1, $3); }
     | expr GE expr  
-        { $$ = make_binop(BINOP_GE, pli12yylinenum, $1, $3); }
+        { $$ = make_binop(BINOP_GE, $1, $3); }
     | expr ADD expr 
-        { $$ = make_binop(BINOP_ADD, pli12yylinenum, $1, $3); }
+        { $$ = make_binop(BINOP_ADD, $1, $3); }
     | expr SUB expr 
-        { $$ = make_binop(BINOP_SUB, pli12yylinenum, $1, $3); }
+        { $$ = make_binop(BINOP_SUB, $1, $3); }
     | expr MUL expr 
-        { $$ = make_binop(BINOP_MUL, pli12yylinenum, $1, $3); }
+        { $$ = make_binop(BINOP_MUL, $1, $3); }
     | expr DIV expr 
-        { $$ = make_binop(BINOP_DIV, pli12yylinenum, $1, $3); }
+        { $$ = make_binop(BINOP_DIV, $1, $3); }
     ;
 
 constant

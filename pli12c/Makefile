@@ -35,14 +35,21 @@ splint.out:	$(SSRC) $(HDR) Makefile
 tags:		$(SRC)
 		ctags -w $(SRC)
 
+.PHONY: clean
 clean:
 		-/bin/rm $(OBJ) parser.c parser.h parser.output scanner.c \
 			> /dev/null 2>&1
 
+.PHONY: realclean
 realclean:	clean
 		-/bin/rm pli12c splint.out tags > /dev/null 2>&1
 
+.PHONY: clobber
 clobber: realclean
+
+.PHONY: test
+test:	pli12c
+	cd tests; ./Runtests -p
 
 $(OBJ):		$(HDR)
 

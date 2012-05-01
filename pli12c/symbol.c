@@ -89,8 +89,7 @@ static Sym make_defined(Func f) {
 }
 
 static Types arg_types(Params ps) {
-    return (!ps) ? ins_type() : NULL;
-
+    return (ps) ? ins_type(ps->p_first, arg_types(p->rest)) : NULL;
 }
 
 static Sym make_builtin(const char *id, Types args, Type t) {

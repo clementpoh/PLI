@@ -1,3 +1,6 @@
+/*
+** vim: ts=4 sw=4 expandtab foldmethod=indent
+*/
 #include <string.h>
 
 #include "pli12c.h"
@@ -79,6 +82,7 @@ bool	add_user_function(Func f) {
         return TRUE;
     } else {
         /* TODO: Error report for duplicate name. */
+        record_error(f->lineno, "Don't be a cow!");
         return FALSE;
     }
 }

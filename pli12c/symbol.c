@@ -2,16 +2,37 @@
 ** vim: ts=4 sw=4 expandtab foldmethod=indent
 */
 #include <string.h>
+#include <stdio.h>
 
 #include "pli12c.h"
 #include "symbol.h"
 
-Syms s_table = NULL;
+typedef struct s_syms  *Syms;
+typedef struct s_sym   *Sym;
+
+struct s_syms {
+	Sym     first;
+	Syms    rest;
+};
+
+struct s_sym {
+	char	*id;
+	Type	ret;
+	Types	args;
+    Status  sts;
+
+	Params	vars;
+};
+
+static Syms s_table = NULL;
 
 static Types arg_types(Params ps);
 static Sym make_defined(Func f);
+static Param dec_to_par(Decl d);
+static Params make_vars(Func f);
 static Sym make_builtin(const char *id, Types args, Type t);
 static Syms ins_sym(Sym  s, Syms ss);
+static bool lookup_var(char *id, Params vars);
 
 void	init_with_builtin_functions(void) { 
     Sym sym;
@@ -75,16 +96,28 @@ void	init_with_builtin_functions(void) {
     s_table = ins_sym(sym, s_table);
 }
 
-
 bool	add_user_function(Func f) {
     if(!lookup_function(f->id)) {
         s_table = ins_sym(make_defined(f), s_table);
         return TRUE;
     } else {
         /* TODO: Error report for duplicate name. */
-        record_error(f->lineno, "Don't be a cow!");
+        record_error(f->lineno, "function '%s' redefined");
         return FALSE;
     }
+}
+
+static Sym make_defined(Func f) {
+    Sym new = checked_malloc(sizeof(*new));
+
+    new->id = checked_strdup(f->id);
+    new->args = arg_types(f->args);
+    new->ret = f->type;
+    new->sts = USER_DEFINED;
+
+    new->vars = make_vars(f);
+
+    return new;
 }
 
 /* Returns true if id is already in the function table. */
@@ -101,14 +134,51 @@ bool    lookup_function(char *id) {
     return FALSE;
 }
 
-static Sym make_defined(Func f) {
-    Sym new = checked_malloc(sizeof(*new));
+static bool lookup_var(char *id, Params vars) {
+    Params curr = vars;
+    while(curr) {
+        if (!strcmp(id, curr->p_first->id)) {
+            return TRUE;
+        } else {
+            curr = curr->p_rest;
+        }
+    }
 
-    new->id = checked_strdup(f->id);
-    new->args = arg_types(f->args);
-    new->ret = f->type;
-    new->sts = USER_DEFINED;
+    return FALSE;
+}
 
+static Params make_vars(Func f) {
+    Params vars;
+    Params p = f->args; 
+    Decls d = f->decls;
+
+    while(p) {
+        if(!lookup_var(p->p_first->id, vars)) {
+            vars = ins_param(p->p_first, vars);
+        } else {
+            record_error(p->p_first->lineno, "variable '%s' redefined");
+        }
+        p = p->p_rest;
+    }
+
+    while(d) {
+        if(!lookup_var(d->d_first->id, vars)) {
+            vars = ins_param(dec_to_par(d->d_first), vars);
+        } else {
+            record_error(d->d_first->lineno, "variable '%s' redefined");
+        }
+         d = d->d_rest;
+    }
+
+    return vars;
+}
+
+static Param dec_to_par(Decl d) {
+    Param new = checked_malloc(sizeof(*new));
+
+    new->id = checked_strdup(d->id);
+    new->type = d->type;
+    
     return new;
 }
 

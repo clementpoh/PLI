@@ -35,27 +35,4 @@ extern	int	add_variable(const char *name, Type type);
 extern	int	lookup_variable(const char *name, Type *type_ptr);
 extern	int	num_variables(void);
 
-/*
- * Following are used internally.
-*/
-typedef Param	Var;
-typedef Params 	Vars;
-
-typedef struct s_syms  *Syms;
-typedef struct s_sym   *Sym;
-
-struct s_syms {
-	Sym     first;
-	Syms    rest;
-};
-
-struct s_sym {
-	char	*id;
-	Type	ret;
-	Types	args;
-    Status  sts;
-
-	Vars	vars;
-};
-
 #endif	/* SYMBOL_H */

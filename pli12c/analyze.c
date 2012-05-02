@@ -9,7 +9,6 @@
 #include    "analyze.h"
 #include    "symbol.h"
 
-
 static void pop_sym_table(Funcs prog_funcs);
 
 Funcs

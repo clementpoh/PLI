@@ -16,10 +16,14 @@
 */
 
 extern	void	init_with_builtin_functions(void);
-extern	bool	add_user_function(const char *name, Type return_type,
-			Types arg_types);
+extern	bool	add_user_function(Func f);
+
+/* Returns true if id is already in the function table. */
+extern  bool    lookup_function(char *id);
+/*
 extern	bool	lookup_function(const char *name, Type *return_type_ptr,
-			Types *arg_types_ptr, Status *status_ptr);
+                Types *arg_types_ptr, Status *status_ptr);
+*/
 
 /*
 ** These look after the list of known variables in a function,

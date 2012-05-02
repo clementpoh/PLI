@@ -7,16 +7,24 @@
 
 #include    "ast.h"
 #include    "analyze.h"
+#include    "symbol.h"
+
+
+static void pop_sym_table(Funcs prog_funcs);
 
 Funcs
 analyze_prog(Funcs prog_funcs)
 {
+    Funcs funcs = prog_funcs;
+    pop_sym_table(funcs);
+    return funcs;
+}
+
+static void pop_sym_table(Funcs prog_funcs) {
     Funcs func = prog_funcs;
     while(func) {
-        // add_user_function(func);
+        add_user_function(func->f_first);
 
-        func = prog_funcs->f_rest;
+        func = func->f_rest;
     }
-
-    return func;
 }

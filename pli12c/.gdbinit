@@ -1,4 +1,4 @@
-break pretty_prog
+break analyze_prog
 
-run -p tests/fib.pli12 out
-display *parsed_prog
+run tests/fib.pli12 ../out
+display *s_table->first

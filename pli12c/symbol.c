@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "pli12c.h"
 #include "symbol.h"
 
@@ -72,16 +74,34 @@ void	init_with_builtin_functions(void) {
 
 
 bool	add_user_function(Func f) {
+    if(!lookup_function(f->id)) {
+        s_table = ins_sym(make_defined(f), s_table);
+        return TRUE;
+    } else {
+        /* TODO: Error report for duplicate name. */
+        return FALSE;
+    }
+}
 
-    s_table = make_defined(f);
+/* Returns true if id is already in the function table. */
+bool    lookup_function(char *id) {
+    Syms curr = s_table;
+    while(curr) {
+        if (!strcmp(id, curr->first->id)) {
+            return TRUE;
+        } else {
+            curr = curr->rest;
+        }
+    }
 
+    return FALSE;
 }
 
 static Sym make_defined(Func f) {
     Sym new = checked_malloc(sizeof(*new));
 
     new->id = checked_strdup(f->id);
-    new->args = arg_types(f);
+    new->args = arg_types(f->args);
     new->ret = f->type;
     new->sts = USER_DEFINED;
 
@@ -89,7 +109,7 @@ static Sym make_defined(Func f) {
 }
 
 static Types arg_types(Params ps) {
-    return (ps) ? ins_type(ps->p_first, arg_types(p->rest)) : NULL;
+    return (ps) ? ins_type(ps->p_first->type, arg_types(ps->p_rest)) : NULL;
 }
 
 static Sym make_builtin(const char *id, Types args, Type t) {

@@ -45,7 +45,7 @@ typedef union {
 } Val;
 
 typedef enum {
-    TYPE_ERROR,
+    TYPE_ERROR = FALSE,
     TYPE_INT,
     TYPE_REAL,
     TYPE_BOOL,

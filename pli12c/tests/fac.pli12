@@ -20,6 +20,9 @@ end
 
 function fib(n: int, n: string, o: bool) returns int
 begin
+    declare cow int initialize to 10;
+    declare cow int initialize to 10;
+
 	if (n <= 1) then
 		return 1;
 	else

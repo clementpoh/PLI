@@ -31,8 +31,8 @@ extern	bool	lookup_function(const char *name, Type *return_type_ptr,
 */
 
 extern	void	init_variables(void);
-extern	int	add_variable(const char *name, Type type);
-extern	int	lookup_variable(const char *name, Type *type_ptr);
-extern	int	num_variables(void);
+extern	int	    add_variable(char *name, Type type);
+extern	Type    lookup_variable(char *func, char *var);
+extern	int	    num_variables(void);
 
 #endif	/* SYMBOL_H */

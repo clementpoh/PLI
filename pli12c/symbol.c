@@ -35,10 +35,128 @@ static Param    clone_param(Param p);
 
 static Params   decls_to_vars(Decls ds, Params vs);
 static Param    dec_to_var(Decl d);
-static bool     lookup_var(char *id, Params vars);
+static Type     lookup_var(char *id, Params vars);
 
 static Sym      make_builtin(const char *id, Types args, Type t);
 static Syms     ins_sym(Sym  s, Syms ss);
+
+
+Type    lookup_variable(char *func, char *var) {
+    Syms curr = s_table;
+    while(curr) {
+        if (!strcmp(func, curr->first->id)) {
+            return lookup_var(var, curr->first->vars);
+        } 
+        curr = curr->rest;
+    }
+
+    return TYPE_ERROR;
+}
+
+/* TODO: Error report for duplicate name. */
+bool	add_user_function(Func f) {
+    if(!lookup_function(f->id)) {
+        s_table = ins_sym(make_defined(f), s_table);
+        return TRUE;
+    } else {
+        record_error(f->lineno, "function '%s' redefined");
+        return FALSE;
+    }
+}
+
+static Sym      make_defined(Func f) {
+    Sym new = checked_malloc(sizeof(*new));
+
+    new->id = checked_strdup(f->id);
+    new->args = arg_types(f->args);
+    new->ret = f->type;
+    new->sts = USER_DEFINED;
+
+    new->vars = make_vars(f);
+
+    return new;
+}
+
+/* Returns true if id is already in the function table. */
+bool    lookup_function(char *id) {
+    Syms curr = s_table;
+    while(curr) {
+        if (!strcmp(id, curr->first->id)) {
+            return TRUE;
+        } 
+        curr = curr->rest;
+    }
+
+    return FALSE;
+}
+
+static Type lookup_var(char *id, Params vars) {
+    Params curr = vars;
+    while(curr) {
+        if (!strcmp(id, curr->p_first->id)) {
+            return curr->p_first->type;
+        } 
+        curr = curr->p_rest;
+    }
+
+    return TYPE_ERROR;
+}
+
+static Params make_vars(Func f) {
+    Params  vars = NULL;
+    
+    vars = clone_params(f->args, vars);
+    vars = decls_to_vars(f->decls, vars);
+
+    return vars;
+}
+
+/* TODO: Fix the error messages. */
+static Params clone_params(Params ps, Params vs) {
+    Param v, p;
+
+    while(ps) {
+        p = ps->p_first;
+        if(!lookup_var(p->id, vs)) {
+            v = clone_param(p);
+            vs = ins_param(v, vs);
+        } else {
+            record_error(p->lineno, "variable '%s' redefined");
+        }
+        ps = ps->p_rest;
+    }
+
+    return vs;
+}
+
+static Param clone_param(Param p) {
+    Param new = checked_malloc(sizeof(*new));
+
+    new->id = checked_strdup(p->id);
+    new->type = p->type;
+    new->lineno = p->lineno;
+    
+    return new;
+}
+
+/* TODO: Fix the error messages. */
+static Params   decls_to_vars(Decls ds, Params vs) {
+    Param v;
+    Decl d;
+
+    while(ds) {
+        d = ds->d_first;
+        if(!lookup_var(d->id, vs)) {
+            v = dec_to_var(d);
+            vs = ins_param(v, vs);
+        } else {
+            record_error(d->lineno, "variable '%s' redefined");
+        }
+        ds = ds->d_rest;
+    }
+
+    return vs;
+}
 
 void	init_with_builtin_functions(void) { 
     Sym sym;
@@ -100,111 +218,6 @@ void	init_with_builtin_functions(void) {
     args = ins_type(TYPE_REAL, args);
     sym = make_builtin("round", args, TYPE_INT);
     s_table = ins_sym(sym, s_table);
-}
-
-bool	add_user_function(Func f) {
-    if(!lookup_function(f->id)) {
-        s_table = ins_sym(make_defined(f), s_table);
-        return TRUE;
-    } else {
-        /* TODO: Error report for duplicate name. */
-        record_error(f->lineno, "function '%s' redefined");
-        return FALSE;
-    }
-}
-
-static Sym make_defined(Func f) {
-    Sym new = checked_malloc(sizeof(*new));
-
-    new->id = checked_strdup(f->id);
-    new->args = arg_types(f->args);
-    new->ret = f->type;
-    new->sts = USER_DEFINED;
-
-    new->vars = make_vars(f);
-
-    return new;
-}
-
-/* Returns true if id is already in the function table. */
-bool    lookup_function(char *id) {
-    Syms curr = s_table;
-    while(curr) {
-        if (!strcmp(id, curr->first->id)) {
-            return TRUE;
-        } else {
-            curr = curr->rest;
-        }
-    }
-
-    return FALSE;
-}
-
-static bool lookup_var(char *id, Params vars) {
-    Params curr = vars;
-    while(curr) {
-        if (!strcmp(id, curr->p_first->id)) {
-            return TRUE;
-        } else {
-            curr = curr->p_rest;
-        }
-    }
-
-    return FALSE;
-}
-
-static Params make_vars(Func f) {
-    Params  vars = NULL;
-    
-    vars = clone_params(f->args, vars);
-    vars = decls_to_vars(f->decls, vars);
-
-    return vars;
-}
-
-static Params clone_params(Params ps, Params vs) {
-    Param v, p;
-
-    while(ps) {
-        p = ps->p_first;
-        if(!lookup_var(p->id, vs)) {
-            v = clone_param(p);
-            vs = ins_param(v, vs);
-        } else {
-            record_error(p->lineno, "variable '%s' redefined");
-        }
-        ps = ps->p_rest;
-    }
-
-    return vs;
-}
-
-static Param clone_param(Param p) {
-    Param new = checked_malloc(sizeof(*new));
-
-    new->id = checked_strdup(p->id);
-    new->type = p->type;
-    new->lineno = p->lineno;
-    
-    return new;
-}
-
-static Params   decls_to_vars(Decls ds, Params vs) {
-    Param v;
-    Decl d;
-
-    while(ds) {
-        d = ds->d_first;
-        if(!lookup_var(d->id, vs)) {
-            v = dec_to_var(d);
-            vs = ins_param(v, vs);
-        } else {
-            record_error(d->lineno, "variable '%s' redefined");
-        }
-        ds = ds->d_rest;
-    }
-
-    return vs;
 }
 
 static Param dec_to_var(Decl d) {

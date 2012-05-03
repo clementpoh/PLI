@@ -26,13 +26,19 @@ struct s_sym {
 
 static Syms s_table = NULL;
 
-static Types arg_types(Params ps);
-static Sym make_defined(Func f);
-static Param dec_to_par(Decl d);
-static Params make_vars(Func f);
-static Sym make_builtin(const char *id, Types args, Type t);
-static Syms ins_sym(Sym  s, Syms ss);
-static bool lookup_var(char *id, Params vars);
+static Types    arg_types(Params ps);
+static Sym      make_defined(Func f);
+static Params   make_vars(Func f);
+
+static Params   clone_params(Params ps, Params new);
+static Param    clone_param(Param p);
+
+static Params   decls_to_vars(Decls ds, Params vs);
+static Param    dec_to_var(Decl d);
+static bool     lookup_var(char *id, Params vars);
+
+static Sym      make_builtin(const char *id, Types args, Type t);
+static Syms     ins_sym(Sym  s, Syms ss);
 
 void	init_with_builtin_functions(void) { 
     Sym sym;
@@ -148,32 +154,59 @@ static bool lookup_var(char *id, Params vars) {
 }
 
 static Params make_vars(Func f) {
-    Params vars;
-    Params p = f->args; 
-    Decls d = f->decls;
-
-    while(p) {
-        if(!lookup_var(p->p_first->id, vars)) {
-            vars = ins_param(p->p_first, vars);
-        } else {
-            record_error(p->p_first->lineno, "variable '%s' redefined");
-        }
-        p = p->p_rest;
-    }
-
-    while(d) {
-        if(!lookup_var(d->d_first->id, vars)) {
-            vars = ins_param(dec_to_par(d->d_first), vars);
-        } else {
-            record_error(d->d_first->lineno, "variable '%s' redefined");
-        }
-         d = d->d_rest;
-    }
+    Params  vars = NULL;
+    
+    vars = clone_params(f->args, vars);
+    vars = decls_to_vars(f->decls, vars);
 
     return vars;
 }
 
-static Param dec_to_par(Decl d) {
+static Params clone_params(Params ps, Params vs) {
+    Param v, p;
+
+    while(ps) {
+        p = ps->p_first;
+        if(!lookup_var(p->id, vs)) {
+            v = clone_param(p);
+            vs = ins_param(v, vs);
+        } else {
+            record_error(p->lineno, "variable '%s' redefined");
+        }
+        ps = ps->p_rest;
+    }
+
+    return vs;
+}
+
+static Param clone_param(Param p) {
+    Param new = checked_malloc(sizeof(*new));
+
+    new->id = checked_strdup(p->id);
+    new->type = p->type;
+    
+    return new;
+}
+
+static Params   decls_to_vars(Decls ds, Params vs) {
+    Param v;
+    Decl d;
+
+    while(ds) {
+        d = ds->d_first;
+        if(!lookup_var(d->id, vs)) {
+            v = dec_to_var(d);
+            vs = ins_param(v, vs);
+        } else {
+            record_error(d->lineno, "variable '%s' redefined");
+        }
+        ds = ds->d_rest;
+    }
+
+    return vs;
+}
+
+static Param dec_to_var(Decl d) {
     Param new = checked_malloc(sizeof(*new));
 
     new->id = checked_strdup(d->id);

@@ -18,7 +18,7 @@ begin
 	return 0;
 end
 
-function fib(n: int, n: int) returns int
+function fib(n: int, n: string, o: bool) returns int
 begin
 	if (n <= 1) then
 		return 1;
@@ -27,7 +27,7 @@ begin
 	endif
 end
 
-function fib(n: int) returns int
+function fib(n: int, n: string, o: bool) returns int
 begin
 	if (n <= 1) then
 		return 1;

@@ -15,7 +15,7 @@
 #include "pli12c.h"
 #include "ast.h"
 
-Func    make_func(char *id, Params ps, Type t, Decls ds, Stmts ss) {
+Func    make_func(int lineno, char *id, Params ps, Type t, Decls ds, Stmts ss) {
     Func new = checked_malloc(sizeof(*new));
 
     new->id = id;
@@ -24,7 +24,7 @@ Func    make_func(char *id, Params ps, Type t, Decls ds, Stmts ss) {
     new->decls = ds;
     new->stmts = ss;
 
-    new->lineno = pli12yylinenum;
+    new->lineno = lineno;
 
     return new;
 }

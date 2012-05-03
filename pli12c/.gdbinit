@@ -1,4 +1,4 @@
 break analyze_prog
 
-run tests/fib.pli12 ../out
-display *s_table->first
+run tests/fac.pli12 ../out
+display *s_table->rest->first

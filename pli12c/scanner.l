@@ -49,7 +49,10 @@ nonl    [^\n\f]
 
 %%
 
-"function"  { return FUNCTION; }
+"function"  { 
+                pli12yylval.Uint = pli12yylinenum;
+                return FUNCTION; 
+            }
 
 "("         { return LPAREN; }
 ")"         { return RPAREN; }

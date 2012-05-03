@@ -184,6 +184,7 @@ static Param clone_param(Param p) {
 
     new->id = checked_strdup(p->id);
     new->type = p->type;
+    new->lineno = p->lineno;
     
     return new;
 }
@@ -211,6 +212,7 @@ static Param dec_to_var(Decl d) {
 
     new->id = checked_strdup(d->id);
     new->type = d->type;
+    new->lineno = d->lineno;
     
     return new;
 }

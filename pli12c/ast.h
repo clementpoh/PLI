@@ -45,11 +45,11 @@ typedef union {
 } Val;
 
 typedef enum {
+    TYPE_ERROR,
     TYPE_INT,
     TYPE_REAL,
     TYPE_BOOL,
-    TYPE_STRING,
-    TYPE_ERROR = -1
+    TYPE_STRING
 } Type;
 
 typedef enum {
@@ -219,7 +219,10 @@ struct s_stmts {
     Stmts   s_rest;
 };
 
-extern  Func    make_func(char *id, Params ps, Type t, Decls ds, Stmts stmts); 
+extern  Func    make_func
+                    ( int lineno, char *id, Params ps
+                    , Type t , Decls ds , Stmts stmts); 
+
 extern  Param   make_param(char *id, Type t); 
 extern  Decl    make_decl(char *id, Type t, Const val);
 

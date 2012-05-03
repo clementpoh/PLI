@@ -43,7 +43,7 @@ extern  void    pli12yyerror(const char *s);
     Expr    Uexpr;
 }
 
-%token FUNCTION
+%token <Uint> FUNCTION
 
 %token LPAREN
 %token RPAREN
@@ -146,14 +146,14 @@ programme
 
 function
     : FUNCTION ID args RETURNS TYPE BEGINS decls stmtlist END
-        { $$ = make_func($2, $3, $5, $7, $8); }
+        { $$ = make_func($1, $2, $3, $5, $7, $8); }
     ;
 
 args
     : LPAREN RPAREN
         { $$ = NULL; }
     | LPAREN params RPAREN
-        { $$ = $2 }
+        { $$ = $2; }
     ;
 
 params

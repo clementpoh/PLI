@@ -7,50 +7,73 @@
 #include "pli12c.h"
 #include "symbol.h"
 
-typedef struct s_syms  *Syms;
-typedef struct s_sym   *Sym;
+typedef struct s_syms  *Fsyms;
 
 struct s_syms {
-	Sym     first;
-	Syms    rest;
+	Fsym     first;
+	Fsyms    rest;
 };
 
-struct s_sym {
-	char	*id;
-	Type	ret;
-	Types	args;
-    Status  sts;
 
-	Params	vars;
-};
+static Fsyms s_table = NULL;
 
-static Syms s_table = NULL;
+static Param    lookup_var(char *id, Params vs);
 
+static Fsym     make_defined(Func f);
 static Types    arg_types(Params ps);
-static Sym      make_defined(Func f);
 static Params   make_vars(Func f);
 
 static Params   clone_params(Params ps, Params new);
 static Param    clone_param(Param p);
 
 static Params   decls_to_vars(Decls ds, Params vs);
-static Param    dec_to_var(Decl d);
-static Type     lookup_var(char *id, Params vars);
+static Param    decl_to_var(Decl d);
 
-static Sym      make_builtin(const char *id, Types args, Type t);
-static Syms     ins_sym(Sym  s, Syms ss);
+static Fsym     make_builtin(const char *id, Types args, Type t);
+static Fsyms    ins_sym(Fsym s, Fsyms ss);
 
 
-Type    lookup_variable(char *func, char *var) {
-    Syms curr = s_table;
+/* Returns NULL if id is not in the function table. */
+Fsym    lookup_function(char *id) {
+    Fsyms curr = s_table;
     while(curr) {
-        if (!strcmp(func, curr->first->id)) {
-            return lookup_var(var, curr->first->vars);
+        if (!strcmp(id, curr->first->id)) {
+            return curr->first;
         } 
         curr = curr->rest;
     }
 
-    return TYPE_ERROR;
+    return NULL;
+}
+
+Param   lookup_variable(char *func, char *var) {
+    Fsym f = lookup_function(func);
+    return (f) ? lookup_var(var, f->vars) : NULL;
+}
+
+Param   lookup_var(char *id, Params vs) {
+    Params curr = vs;
+    while(curr) {
+        if (!strcmp(id, curr->p_first->id)) {
+            return curr->p_first;
+        } 
+        curr = curr->p_rest;
+    }
+
+    return NULL;
+}
+
+Type    get_func_type(char *func) {
+    Fsym f = lookup_function(func);
+
+    return (f) ? f->ret : TYPE_ERROR;
+}
+
+Type    get_var_type(char *func, char *var) {
+    Fsym f = lookup_function(func);
+    Param v = lookup_var(var, f->vars);
+
+    return (v) ? v->type : TYPE_ERROR;
 }
 
 /* TODO: Error report for duplicate name. */
@@ -64,8 +87,41 @@ bool	add_user_function(Func f) {
     }
 }
 
-static Sym      make_defined(Func f) {
-    Sym new = checked_malloc(sizeof(*new));
+void	init_with_builtin_functions(void) { 
+    Fsym sym;
+    Types args;
+
+    args = ins_type(TYPE_STRING, NULL);
+    args = ins_type(TYPE_STRING, args);
+    sym = make_builtin("string_concat", args, TYPE_STRING);
+    s_table = ins_sym(sym, s_table);
+
+    args = ins_type(TYPE_STRING, NULL);
+    sym = make_builtin("string_length", args, TYPE_INT);
+    s_table = ins_sym(sym, s_table);
+
+    args = ins_type(TYPE_INT, NULL);
+    args = ins_type(TYPE_INT, args);
+    args = ins_type(TYPE_STRING, args);
+    sym = make_builtin("substring", args, TYPE_STRING);
+    s_table = ins_sym(sym, s_table);
+
+
+    args = ins_type(TYPE_REAL, args);
+    sym = make_builtin("sqrt", args, TYPE_REAL);
+    s_table = ins_sym(sym, s_table);
+
+    args = ins_type(TYPE_REAL, args);
+    sym = make_builtin("trunc", args, TYPE_INT);
+    s_table = ins_sym(sym, s_table);
+
+    args = ins_type(TYPE_REAL, args);
+    sym = make_builtin("round", args, TYPE_INT);
+    s_table = ins_sym(sym, s_table);
+}
+
+static Fsym      make_defined(Func f) {
+    Fsym new = checked_malloc(sizeof(*new));
 
     new->id = checked_strdup(f->id);
     new->args = arg_types(f->args);
@@ -77,38 +133,17 @@ static Sym      make_defined(Func f) {
     return new;
 }
 
-/* Returns true if id is already in the function table. */
-bool    lookup_function(char *id) {
-    Syms curr = s_table;
-    while(curr) {
-        if (!strcmp(id, curr->first->id)) {
-            return TRUE;
-        } 
-        curr = curr->rest;
-    }
-
-    return FALSE;
-}
-
-static Type lookup_var(char *id, Params vars) {
-    Params curr = vars;
-    while(curr) {
-        if (!strcmp(id, curr->p_first->id)) {
-            return curr->p_first->type;
-        } 
-        curr = curr->p_rest;
-    }
-
-    return TYPE_ERROR;
+static Types arg_types(Params ps) {
+    return (ps) ? ins_type(ps->p_first->type, arg_types(ps->p_rest)) : NULL;
 }
 
 static Params make_vars(Func f) {
-    Params  vars = NULL;
+    Params  vs = NULL;
     
-    vars = clone_params(f->args, vars);
-    vars = decls_to_vars(f->decls, vars);
+    vs = clone_params(f->args, vs);
+    vs = decls_to_vars(f->decls, vs);
 
-    return vars;
+    return vs;
 }
 
 /* TODO: Fix the error messages. */
@@ -147,7 +182,7 @@ static Params   decls_to_vars(Decls ds, Params vs) {
     while(ds) {
         d = ds->d_first;
         if(!lookup_var(d->id, vs)) {
-            v = dec_to_var(d);
+            v = decl_to_var(d);
             vs = ins_param(v, vs);
         } else {
             record_error(d->lineno, "variable '%s' redefined");
@@ -158,69 +193,7 @@ static Params   decls_to_vars(Decls ds, Params vs) {
     return vs;
 }
 
-void	init_with_builtin_functions(void) { 
-    Sym sym;
-    Types args;
-
-    sym = make_builtin("read_int", NULL, TYPE_INT);
-    s_table = ins_sym(sym, s_table);
-
-    sym = make_builtin("read_real", NULL, TYPE_REAL);
-    s_table = ins_sym(sym, s_table);
-
-    sym = make_builtin("read_bool", NULL, TYPE_BOOL);
-    s_table = ins_sym(sym, s_table);
-
-    sym = make_builtin("read_string", NULL, TYPE_STRING);
-    s_table = ins_sym(sym, s_table);
-
-    args = ins_type(TYPE_INT, NULL);
-    sym = make_builtin("write_int", args, TYPE_ERROR);
-    s_table = ins_sym(sym, s_table);
-
-    args = ins_type(TYPE_REAL, NULL);
-    sym = make_builtin("write_real", args, TYPE_ERROR);
-    s_table = ins_sym(sym, s_table);
-
-    args = ins_type(TYPE_BOOL, NULL);
-    sym = make_builtin("write_bool", args, TYPE_ERROR);
-    s_table = ins_sym(sym, s_table);
-
-    args = ins_type(TYPE_STRING, NULL);
-    sym = make_builtin("write_string", args, TYPE_ERROR);
-    s_table = ins_sym(sym, s_table);
-
-
-    args = ins_type(TYPE_STRING, NULL);
-    args = ins_type(TYPE_STRING, args);
-    sym = make_builtin("string_concat", args, TYPE_STRING);
-    s_table = ins_sym(sym, s_table);
-
-    args = ins_type(TYPE_STRING, NULL);
-    sym = make_builtin("string_length", args, TYPE_INT);
-    s_table = ins_sym(sym, s_table);
-
-    args = ins_type(TYPE_INT, NULL);
-    args = ins_type(TYPE_INT, args);
-    args = ins_type(TYPE_STRING, args);
-    sym = make_builtin("substring", args, TYPE_STRING);
-    s_table = ins_sym(sym, s_table);
-
-
-    args = ins_type(TYPE_REAL, args);
-    sym = make_builtin("sqrt", args, TYPE_REAL);
-    s_table = ins_sym(sym, s_table);
-
-    args = ins_type(TYPE_REAL, args);
-    sym = make_builtin("trunc", args, TYPE_INT);
-    s_table = ins_sym(sym, s_table);
-
-    args = ins_type(TYPE_REAL, args);
-    sym = make_builtin("round", args, TYPE_INT);
-    s_table = ins_sym(sym, s_table);
-}
-
-static Param dec_to_var(Decl d) {
+static Param decl_to_var(Decl d) {
     Param new = checked_malloc(sizeof(*new));
 
     new->id = checked_strdup(d->id);
@@ -230,12 +203,8 @@ static Param dec_to_var(Decl d) {
     return new;
 }
 
-static Types arg_types(Params ps) {
-    return (ps) ? ins_type(ps->p_first->type, arg_types(ps->p_rest)) : NULL;
-}
-
-static Sym make_builtin(const char *id, Types args, Type t) {
-    Sym new = checked_malloc(sizeof(*new));
+static Fsym make_builtin(const char *id, Types args, Type t) {
+    Fsym new = checked_malloc(sizeof(*new));
 
     new->id = checked_strdup(id);
     new->args = args;
@@ -245,8 +214,8 @@ static Sym make_builtin(const char *id, Types args, Type t) {
     return new;
 }
 
-static Syms ins_sym(Sym  s, Syms ss) {
-    Syms new = checked_malloc(sizeof(*new));
+static Fsyms ins_sym(Fsym  s, Fsyms ss) {
+    Fsyms new = checked_malloc(sizeof(*new));
 
     new->first = s;
     new->rest = ss;

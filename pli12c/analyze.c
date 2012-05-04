@@ -5,6 +5,9 @@
 ** This module contains the semantic analyzer for PLI12 programs.
 */
 
+#include    <stdio.h>
+
+#include    "pli12c.h"
 #include    "ast.h"
 #include    "analyze.h"
 #include    "symbol.h"
@@ -47,10 +50,16 @@ static void verify_types(Funcs fs) {
 static void verify_statement(char *id, Stmt s) {
     switch(s->t) {
         case STMT_ASSIGN:
+            verify_expression(id, s->s.Uassign.expr);
+            if (get_var_type(id, s->s.Uassign.id) == s->s.Uassign.expr->r) {
+                record_error(s->lineno, "W00t they match!");
+            }
             break;
         case STMT_READ:
+            record_error(s->lineno, "Read");
             break;
         case STMT_WRITE:
+            record_error(s->lineno, "Write");
             break;
         case STMT_IF:
             break;
@@ -66,16 +75,24 @@ static void verify_statement(char *id, Stmt s) {
 static void verify_expression(char *id, Expr e) {
     switch(e->t) {
         case EXPR_ID:
-            e->r = lookup_variable(id, e->e.Uid);
+            e->r = get_var_type(id, e->e.Uid);
             break;
         case EXPR_CONST:
             e->r = e->e.Uconst->type;
             break;
         case EXPR_BINOP:
+            verify_expression(id, e->e.Ubinop.e1);
+            verify_expression(id, e->e.Ubinop.e2);
             break;
         case EXPR_UNOP:
+            verify_expression(id, e->e.Uunop.e);
             break;
         case EXPR_FUNC:
+            e->r = get_func_type(e->e.Ucall.id);
+            /* TODO: Handle the argument expressions.
+             * Going to double recurse down the
+             * expression list and the parameter list.
+             */
             break;
     }
 }
@@ -101,6 +118,7 @@ static Func init_declaration(Func f) {
     while(decls) {
         d = decls->d_first;
         if(d->val) {
+            pli12yylinenum = d->lineno;
             s = make_assign(d->id,make_const(d->val));
             f->stmts = ins_stmt(s, f->stmts);
         }

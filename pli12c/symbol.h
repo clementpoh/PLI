@@ -11,6 +11,16 @@
 #include "std.h"
 #include "ast.h"
 
+typedef struct s_sym   *Fsym;
+struct s_sym {
+	char	*id;
+	Type	ret;
+	Types	args;
+    Status  sts;
+
+	Params	vars;
+};
+
 /*
 ** These look after the list of known functions.
 */
@@ -18,21 +28,16 @@
 extern	void	init_with_builtin_functions(void);
 extern	bool	add_user_function(Func f);
 
-/* Returns true if id is already in the function table. */
-extern  bool    lookup_function(char *id);
-/*
-extern	bool	lookup_function(const char *name, Type *return_type_ptr,
-                Types *arg_types_ptr, Status *status_ptr);
-*/
+extern	Fsym    lookup_function(char *id);
+extern  Param   lookup_variable(char *func, char *var);
 
+extern  Type    get_func_type(char *func);
+extern  Type    get_var_type(char *func, char *var);
 /*
 ** These look after the list of known variables in a function,
 ** including parameters.
 */
 
-extern	void	init_variables(void);
-extern	int	    add_variable(char *name, Type type);
-extern	Type    lookup_variable(char *func, char *var);
 extern	int	    num_variables(void);
 
 #endif	/* SYMBOL_H */

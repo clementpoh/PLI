@@ -199,6 +199,9 @@ static Params   decls_to_vars(Decls ds, Params vs) {
         } else {
             sprintf(err_buff, "variable '%s' redefined", d->id);
             record_error(d->lineno, err_buff);
+            /* Remove any would be initializations. */
+            free(d->val);
+            d->val = NULL;
         }
         ds = ds->d_rest;
     }

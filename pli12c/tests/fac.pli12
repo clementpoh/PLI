@@ -13,6 +13,7 @@ begin
 	write k;
 	write " is ";
 	write fib(k);
+	write cow(k);
 	write "\n";
 
 	return 0;

@@ -93,7 +93,7 @@ Stmt    make_if(Expr cond, Stmts then) {
     new->s.Uif.cond = cond;
     new->s.Uif.then = then;
 
-    new->lineno = pli12yylinenum;
+    new->lineno = cond->lineno;
 
     return new;
 }
@@ -106,7 +106,7 @@ Stmt    make_else(Expr cond, Stmts then, Stmts other) {
     new->s.Uelse.then = then;
     new->s.Uelse.other = other;
 
-    new->lineno = pli12yylinenum;
+    new->lineno = cond->lineno;
 
     return new;
 }
@@ -118,7 +118,7 @@ Stmt    make_while(Expr cond, Stmts rep) {
     new->s.Uwhile.cond = cond;
     new->s.Uwhile.rep = rep;
 
-    new->lineno = pli12yylinenum;
+    new->lineno = cond->lineno;
 
     return new;
 }
@@ -173,10 +173,10 @@ Expr    make_binop(BinOp binop, Expr e1, Expr e2) {
 Expr    make_unop(UnOp unop, Expr e) {
     Expr new = checked_malloc(sizeof(*new));
 
-    /* TODO: Work out the type of the returned expression. */
     new->t = EXPR_UNOP;
     new->e.Uunop.op = unop;
     new->e.Uunop.e = e;
+    new->r = (unop == UNOP_INT_TO_REAL) ? TYPE_REAL : TYPE_ERROR;
 
     new->lineno = pli12yylinenum;
 

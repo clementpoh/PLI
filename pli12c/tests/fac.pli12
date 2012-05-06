@@ -22,6 +22,7 @@ function fib(n: int, n: string, o: bool) returns int
 begin
     declare cow int initialize to 10;
     declare cow int initialize to 10;
+    declare n int initialize to "cow";
 
 	if (n <= 1) then
 		return 1;

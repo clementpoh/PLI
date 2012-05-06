@@ -25,6 +25,9 @@ struct s_sym {
 ** These look after the list of known functions.
 */
 
+
+extern char err_buff[];
+
 extern	void	init_with_builtin_functions(void);
 extern	bool	add_user_function(Func f);
 

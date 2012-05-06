@@ -7,6 +7,10 @@
 #include "pli12c.h"
 #include "symbol.h"
 
+#define BUFFER_LEN 1024
+
+char err_buff[BUFFER_LEN];
+
 typedef struct s_syms  *Fsyms;
 
 struct s_syms {
@@ -23,7 +27,7 @@ static Fsym     make_defined(Func f);
 static Types    arg_types(Params ps);
 static Params   make_vars(Func f);
 
-static Params   clone_params(Params ps, Params new);
+static Params   params_to_vars(Params ps, Params new);
 static Param    clone_param(Param p);
 
 static Params   decls_to_vars(Decls ds, Params vs);
@@ -85,13 +89,13 @@ Type    get_var_type(int lineno, char *func, char *var) {
     return TYPE_ERROR;
 }
 
-/* TODO: Error report for duplicate name. */
 bool	add_user_function(Func f) {
     if(!lookup_function(f->id)) {
         s_table = ins_sym(make_defined(f), s_table);
         return TRUE;
     } else {
-        record_error(f->lineno, "function '%s' redefined");
+        sprintf(err_buff, "function '%s' redefined", f->id);
+        record_error(f->lineno, err_buff);
         return FALSE;
     }
 }
@@ -149,14 +153,13 @@ static Types arg_types(Params ps) {
 static Params make_vars(Func f) {
     Params  vs = NULL;
     
-    vs = clone_params(f->args, vs);
+    vs = params_to_vars(f->args, vs);
     vs = decls_to_vars(f->decls, vs);
 
     return vs;
 }
 
-/* TODO: Fix the error messages. */
-static Params clone_params(Params ps, Params vs) {
+static Params params_to_vars(Params ps, Params vs) {
     Param v, p;
 
     while(ps) {
@@ -165,7 +168,8 @@ static Params clone_params(Params ps, Params vs) {
             v = clone_param(p);
             vs = ins_param(v, vs);
         } else {
-            record_error(p->lineno, "variable '%s' redefined");
+            sprintf(err_buff, "variable '%s' redefined", p->id);
+            record_error(p->lineno, err_buff);
         }
         ps = ps->p_rest;
     }
@@ -183,7 +187,6 @@ static Param clone_param(Param p) {
     return new;
 }
 
-/* TODO: Fix the error messages. */
 static Params   decls_to_vars(Decls ds, Params vs) {
     Param v;
     Decl d;
@@ -194,7 +197,8 @@ static Params   decls_to_vars(Decls ds, Params vs) {
             v = decl_to_var(d);
             vs = ins_param(v, vs);
         } else {
-            record_error(d->lineno, "variable '%s' redefined");
+            sprintf(err_buff, "variable '%s' redefined", d->id);
+            record_error(d->lineno, err_buff);
         }
         ds = ds->d_rest;
     }

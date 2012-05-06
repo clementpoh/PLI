@@ -172,6 +172,7 @@ static Type verify_unop(char *id, Expr e) {
 
 /* TODO: Change the error message */
 static Type verify_call(char *id, Expr call) {
+    int actual = 0, expected = 0;
     Fsym f = lookup_function(call->e.Ucall.id);
     Exprs as = call->e.Ucall.args;
     Types ts = f->args;
@@ -182,14 +183,18 @@ static Type verify_call(char *id, Expr call) {
             if (as && ts) {
                 t = verify_expression(id, as->e_first);
                 is_type(call->lineno, ts->t_first, t);
-            } else if (as) {
-                record_error(call->lineno, "Too many args");
-            } else {
-                record_error(call->lineno, "Too few args");
-            }
+            } 
 
+            actual   += (as) ? 1 : 0;
+            expected += (ts) ? 1 : 0;
             ts = (ts) ? ts->t_rest : NULL;
             as = (as) ? as->e_rest : NULL;
+        }
+
+        if (actual != expected) {
+            sprintf(err_buff, "Wrong number of arguments in call to '%s': " 
+                    "actual %d, expected %d" , f->id, actual, expected);
+            record_error(call->lineno, err_buff);
         }
         return f->ret;
     } else {

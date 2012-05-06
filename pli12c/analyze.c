@@ -35,6 +35,9 @@ static Func init_declaration(Func f);
 Funcs
 analyze_prog(Funcs prog_funcs)
 {
+    if (!lookup_function("main")) {
+        record_error(0, "there is no function named 'main'");
+    }
     pop_sym_table(prog_funcs);
     init_declarations(prog_funcs);
     verify_types(prog_funcs);
@@ -80,13 +83,15 @@ static void verify_statement(char *id, Stmt s) {
             break;
         case STMT_ASSIGN:
             p = lookup_variable(id, s->s.Uassign.id);
-            t2 = verify_expression(id, s->s.Uassign.expr);
             if (!p) {
                 sprintf(err_buff,
                         "assignment to undefined variable '%s'"
                         , s->s.Uassign.id);
                 record_error(line, err_buff);
-            } else if (p->type != t2) {
+            } 
+            
+            t2 = verify_expression(id, s->s.Uassign.expr);
+            if (p && p->type != t2) {
                 sprintf(err_buff,
                         "type mismatch in assignment to '%s': "
                         "assigning %s to %s" 
@@ -153,23 +158,33 @@ static Type verify_binop(char *id, Expr e) {
     Type t1 = verify_expression(id, e->e.Ubinop.e1);
     Type t2 = verify_expression(id, e->e.Ubinop.e2);
     Type ret = t1;
+
+    if (t1 == t2) {
+    } else if (t1 == TYPE_INT && t2 == TYPE_REAL) {
+        pli12yylinenum = e->lineno;
+        e->e.Ubinop.e1 = make_unop(UNOP_INT_TO_REAL, e->e.Ubinop.e1);
+        t1 = TYPE_REAL;
+    } else if (t2 == TYPE_INT && t1 == TYPE_REAL) {
+        pli12yylinenum = e->lineno;
+        e->e.Ubinop.e2 = make_unop(UNOP_INT_TO_REAL, e->e.Ubinop.e2);
+        t2 = TYPE_REAL;
+    } else if (t1 == TYPE_REAL || t1 == TYPE_INT) {
+        sprintf(err_buff, "right operand of '%s' has type %s: "
+                "expected int or real"
+                , binop_to_str(e->e.Ubinop.op), type_to_str(t2));
+        record_error(e->lineno, err_buff);
+    } else {
+        sprintf(err_buff, "left operand of '%s' has type %s: "
+                "expected int or real"
+                , binop_to_str(e->e.Ubinop.op), type_to_str(t1));
+        record_error(e->lineno, err_buff);
+    }
+
     switch (e->e.Ubinop.op) {
         case BINOP_OR:
         case BINOP_AND:
-            return (is_type(e->lineno, TYPE_BOOL, t1)
-                && is_type(e->lineno, TYPE_BOOL, t2))
-                ? TYPE_BOOL
-                : TYPE_ERROR;
-            break;
-        if (t1 == TYPE_INT && t2 == TYPE_REAL) {
-            pli12yylinenum = e->lineno;
-            e->e.Ubinop.e1 = make_unop(UNOP_INT_TO_REAL, e->e.Ubinop.e1);
-            t1 = TYPE_REAL;
-        } else if (t2 == TYPE_INT && t1 == TYPE_REAL) {
-            pli12yylinenum = e->lineno;
-            e->e.Ubinop.e2 = make_unop(UNOP_INT_TO_REAL, e->e.Ubinop.e2);
-            t2 = TYPE_REAL;
-        }
+            is_type(e->lineno, TYPE_BOOL, t1);
+            is_type(e->lineno, TYPE_BOOL, t2);
         case BINOP_EQ:
         case BINOP_NE:
         case BINOP_LT:
@@ -182,10 +197,16 @@ static Type verify_binop(char *id, Expr e) {
         case BINOP_SUB:
         case BINOP_MUL:
         case BINOP_DIV:
-            ret = t1;
+            if (t1 == TYPE_REAL || t2 == TYPE_REAL) {
+                ret = TYPE_REAL;
+            } else {
+                ret = TYPE_INT;
+            } 
             break;
     }
-    return (t1 == t2) ? ret : is_type(e->lineno, ret, t2);
+
+
+    return ret;
 }
 
 static Type verify_unop(char *id, Expr e) {

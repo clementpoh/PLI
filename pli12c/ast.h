@@ -255,5 +255,6 @@ extern  Exprs   ins_expr(Expr e, Exprs es);
 extern  Types   ins_type(Type t, Types ts);
 
 const char *type_to_str(Type t);
+const char *binop_to_str(BinOp op);
 
 #endif  /* AST_H */

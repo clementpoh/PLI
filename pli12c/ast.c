@@ -300,3 +300,34 @@ const char *type_to_str(Type t) {
     return "error";
 }
 
+const char *binop_to_str(BinOp op) {
+    switch(op) {
+        case BINOP_OR: 
+            return ("or"); break;
+        case BINOP_AND:
+            return ("and"); break;
+        case BINOP_EQ:
+            return ("="); break;
+        case BINOP_NE:
+            return ("!="); break;
+        case BINOP_LT:
+            return ("<"); break;
+        case BINOP_LE:
+            return ("<="); break;
+        case BINOP_GT:
+            return (">"); break;
+        case BINOP_GE:
+            return (">="); break;
+        case BINOP_ADD:
+            return ("+"); break;
+        case BINOP_SUB:
+            return ("-"); break;
+        case BINOP_MUL:
+            return ("*"); break;
+        case BINOP_DIV:
+            return ("/"); break;
+    }
+
+    return "Error";
+}
+

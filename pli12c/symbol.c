@@ -198,6 +198,21 @@ static Params   decls_to_vars(Decls ds, Params vs) {
         if(!lookup_var(d->id, vs)) {
             v = decl_to_var(d);
             vs = ins_param(v, vs);
+            if(d->val) {
+                if(d->val->type != d->type) {
+                    sprintf(err_buff,
+                            "type mismatch in initialization of '%s': "
+                            "assigning %s to %s" 
+                            , d->id
+                            , type_to_str(d->val->type)
+                            , type_to_str(d->type)
+                            );
+                    record_error(d->lineno, err_buff);
+
+                    free(d->val);
+                    d->val = NULL;
+                }
+            }
         } else {
             sprintf(err_buff, "variable '%s' redefined", d->id);
             record_error(d->lineno, err_buff);

@@ -24,8 +24,8 @@ test_pretty=false
 test_exec=false
 detail_perf=false
 pli12c="../pli12c"
-srcs=""
 t12="../../t12/t12"
+srcs=""
 
 usage="Usage: runtests [-12] [-pe] [-d] [-c=compiler] [-s=simulator] [-t src]"
 

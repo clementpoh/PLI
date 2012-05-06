@@ -1,15 +1,18 @@
 # This program computes the Nth fibonacci number.
 # Clement Poh: cjpoh 269508
 
-function main() returns int
+function jumping() returns int
 begin
 	declare k int;
 	declare f int;
 
     k := "hello";
+    x := 3;
 
 	write "Please input N: ";
 	read j;
+    write 3 + "hello";
+    fib(3 + "hello");
 
 	write "Fibonacci number #";
 	write k;

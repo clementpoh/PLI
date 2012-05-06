@@ -52,7 +52,7 @@ test:	pli12c clean
 	cd tests; ./Runtests -p
 
 tests: pli12c
-	../good_pli12c tests/fac.pli12 2> ../exp; \
+	#../good_pli12c tests/fac.pli12 2> ../exp; 
 	./pli12c tests/fac.pli12 2> ../out; \
 	vimdiff ../exp ../out
 

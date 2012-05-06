@@ -69,7 +69,8 @@ static void verify_statement(char *id, Stmt s) {
     switch(s->t) {
         case STMT_READ:
             if(!lookup_variable(id, s->s.Uread)) {
-                sprintf(err_buff, "read into undefined variable '%s'"
+                sprintf(err_buff,
+                        "read into undefined variable '%s'"
                         , s->s.Uread);
                 record_error(line, err_buff);
             }
@@ -79,18 +80,21 @@ static void verify_statement(char *id, Stmt s) {
             break;
         case STMT_ASSIGN:
             p = lookup_variable(id, s->s.Uassign.id);
+            t2 = verify_expression(id, s->s.Uassign.expr);
             if (!p) {
-
-            } else {
-                t1 = get_var_type(line, id, s->s.Uassign.id);
-                t2 = verify_expression(id, s->s.Uassign.expr);
-                if (t1 != t2) {
-                    sprintf(err_buff,
-                            "type mismatch in assignment to '%s': "
-                            "assigning %s to %s" 
-                            , s->s.Uassign.id, type_to_str(t2), type_to_str(t1));
-                    record_error(line, err_buff);
-                }
+                sprintf(err_buff,
+                        "assignment to undefined variable '%s'"
+                        , s->s.Uassign.id);
+                record_error(line, err_buff);
+            } else if (p->type != t2) {
+                sprintf(err_buff,
+                        "type mismatch in assignment to '%s': "
+                        "assigning %s to %s" 
+                        , s->s.Uassign.id
+                        , type_to_str(t2)
+                        , type_to_str(p->type)
+                        );
+                record_error(line, err_buff);
             }
             break;
         case STMT_IF:
@@ -240,7 +244,8 @@ static bool is_type(int line, Type exp, Type got) {
     if(!exp || !got) {
         return FALSE;
     } else if(exp != got) {
-        sprintf(err_buff, "Expected '%s', got '%s'", type_to_str(exp), type_to_str(got));
+        sprintf(err_buff, "type mismatch: expected '%s', actual '%s'"
+                , type_to_str(exp), type_to_str(got));
         record_error(line, err_buff);
         return FALSE;
     }

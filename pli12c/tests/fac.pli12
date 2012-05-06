@@ -12,7 +12,8 @@ begin
 	write "Please input N: ";
 	read j;
     write 3 + "hello";
-    fib(3 + "hello");
+    k := fib("hello" + 3);
+    x := fib("hello" + 3);
 
 	write "Fibonacci number #";
 	write k;

@@ -69,11 +69,20 @@ Type    get_func_type(char *func) {
     return (f) ? f->ret : TYPE_ERROR;
 }
 
-Type    get_var_type(char *func, char *var) {
+Type    get_var_type(int lineno, char *func, char *var) {
     Fsym f = lookup_function(func);
-    Param v = lookup_var(var, f->vars);
+    Param v;
 
-    return (v) ? v->type : TYPE_ERROR;
+    if(f) {
+        v = lookup_var(var, f->vars);
+        if(v) {
+            return v->type;
+        } else {
+            record_error(lineno, "Reference to undeclared variable %s");
+        }
+    }
+
+    return TYPE_ERROR;
 }
 
 /* TODO: Error report for duplicate name. */

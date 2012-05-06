@@ -32,7 +32,10 @@ extern	Fsym    lookup_function(char *id);
 extern  Param   lookup_variable(char *func, char *var);
 
 extern  Type    get_func_type(char *func);
-extern  Type    get_var_type(char *func, char *var);
+
+/* Records an error if variable can not be found. */
+extern  Type    get_var_type(int lineno, char *func, char *var);
+
 /*
 ** These look after the list of known variables in a function,
 ** including parameters.

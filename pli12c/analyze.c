@@ -62,19 +62,12 @@ static void verify_statements(char *id, Stmts ss) {
 }
 
 static void verify_statement(char *id, Stmt s) {
+    int line = s->lineno;
     Type t;
     switch(s->t) {
         case STMT_ASSIGN:
             t = verify_expression(id, s->s.Uassign.expr);
-            if (t == get_var_type(id, s->s.Uassign.id)) {
-                record_error(s->lineno, "W00t they match!");
-            }
-            break;
-        case STMT_READ:
-            record_error(s->lineno, "Read");
-            break;
-        case STMT_WRITE:
-            record_error(s->lineno, "Write");
+            is_type(line, get_var_type(line, id, s->s.Uassign.id), t);
             break;
         case STMT_IF:
             t = verify_expression(id, s->s.Uif.cond);
@@ -94,7 +87,10 @@ static void verify_statement(char *id, Stmt s) {
             break;
         case STMT_RETURN:
             t = verify_expression(id, s->s.Ureturn);
-            is_type(s->lineno, get_func_type(id), t);
+            is_type(line, get_func_type(id), t);
+            break;
+        case STMT_READ:
+        case STMT_WRITE:
             break;
     }
 }
@@ -102,7 +98,7 @@ static void verify_statement(char *id, Stmt s) {
 static Type verify_expression(char *id, Expr e) {
     switch(e->t) {
         case EXPR_ID:
-            e->r = get_var_type(id, e->e.Uid);
+            e->r = get_var_type(e->lineno, id, e->e.Uid);
             break;
         case EXPR_CONST:
             e->r = e->e.Uconst->type;
@@ -157,7 +153,7 @@ static Type verify_binop(char *id, Expr e) {
             }
             break;
     }
-
+    return TYPE_ERROR;
 }
 
 static Type verify_unop(char *id, Expr e) {
@@ -170,6 +166,8 @@ static Type verify_unop(char *id, Expr e) {
         case UNOP_INT_TO_REAL:
             return t;
     }
+
+    return TYPE_ERROR;
 }
 
 /* TODO: Change the error message */
@@ -195,10 +193,12 @@ static Type verify_call(char *id, Expr call) {
         }
         return f->ret;
     } else {
+        record_error(call->lineno, "Reference to undefiend function");
         return TYPE_ERROR;
     }
 }
 
+/* TODO: Change the error message */
 static bool is_type(int line, Type exp, Type got) {
     if(exp != got) {
         record_error(line, "Expected %s got %s");

@@ -165,7 +165,7 @@ static void pretty_type(FILE *fp, Type t) {
         case TYPE_REAL: fprintf(fp, "real");     break;
         case TYPE_BOOL: fprintf(fp, "bool");     break;
         case TYPE_STRING: fprintf(fp, "string"); break;
-        case TYPE_ERROR: fprintf(fp, "error"); break;
+        case TYPE_ERROR: fprintf(fp, "error");   break;
     }
 }
 

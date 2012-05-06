@@ -6,8 +6,10 @@ begin
 	declare k int;
 	declare f int;
 
+    k := "hello";
+
 	write "Please input N: ";
-	read k;
+	read j;
 
 	write "Fibonacci number #";
 	write k;
@@ -16,20 +18,26 @@ begin
 	write cow(k);
 	write "\n";
 
-	return 0;
+	return "Cow";
 end
 
 function fib(n: int, n: string, o: bool) returns int
 begin
-    declare cow int initialize to 10;
-    declare cow int initialize to 10;
-    declare n int initialize to "cow";
+    declare cow int initialize to "cow";
 
-	if (n <= 1) then
+	if (n + 1) then
 		return 1;
 	else
 		return fib(n-1) + fib(n-2);
 	endif
+
+    if (n + 1) then
+        n := n;
+    endif
+
+    while (n + 1) do
+        x := 3 + y;
+    endwhile
 end
 
 function fib(n: int, n: string, o: bool) returns int

@@ -254,5 +254,6 @@ extern  Stmts   ins_stmt(Stmt s, Stmts ss);
 extern  Exprs   ins_expr(Expr e, Exprs es);
 extern  Types   ins_type(Type t, Types ts);
 
+const char *type_to_str(Type t);
 
 #endif  /* AST_H */

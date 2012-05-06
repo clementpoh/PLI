@@ -283,3 +283,20 @@ Types   ins_type(Type t, Types ts) {
     new->t_rest = ts;
     return new;
 }
+
+const char *type_to_str(Type t) {
+    switch(t) {
+        case TYPE_INT:
+            return "int";
+        case TYPE_BOOL:
+            return "bool";
+        case TYPE_REAL:
+            return "real";
+        case TYPE_STRING:
+            return "string";
+        case TYPE_ERROR:
+            return "error";
+    }
+    return "error";
+}
+

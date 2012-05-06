@@ -42,7 +42,7 @@ clean:
 
 .PHONY: realclean
 realclean:	clean
-		-/bin/rm pli12c splint.out tags > /dev/null 2>&1
+		-/bin/rm pli12c splint.out tags ../exp ../out > /dev/null 2>&1
 
 .PHONY: clobber
 clobber: realclean
@@ -50,6 +50,11 @@ clobber: realclean
 .PHONY: test
 test:	pli12c clean
 	cd tests; ./Runtests -p
+
+tests: pli12c
+	../good_pli12c tests/fac.pli12 2> ../exp; \
+	./pli12c tests/fac.pli12 2> ../out; \
+	vimdiff ../exp ../out
 
 $(OBJ):		$(HDR)
 

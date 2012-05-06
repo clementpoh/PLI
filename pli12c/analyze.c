@@ -24,6 +24,7 @@ static Type verify_binop(char *id, Expr e);
 static Type verify_call(char *id, Expr call);
 
 static bool is_type(int line, Type exp, Type got);
+static void should_be_bool(StateType s, Type t, int line);
 
 static void pop_sym_table(Funcs prog_funcs);
 
@@ -63,36 +64,55 @@ static void verify_statements(char *id, Stmts ss) {
 
 static void verify_statement(char *id, Stmt s) {
     int line = s->lineno;
-    Type t;
+    Type t1, t2;
     switch(s->t) {
         case STMT_READ:
+            if(!lookup_variable(id, s->s.Uread)) {
+                sprintf(err_buff, "read into undefined variable '%s'"
+                        , s->s.Uread);
+                record_error(s->lineno, err_buff);
+            }
             break;
         case STMT_WRITE:
-            t = verify_expression(id, s->s.Uwrite);
+            t1 = verify_expression(id, s->s.Uwrite);
             break;
         case STMT_ASSIGN:
-            t = verify_expression(id, s->s.Uassign.expr);
-            is_type(line, get_var_type(line, id, s->s.Uassign.id), t);
+            t1 = get_var_type(line, id, s->s.Uassign.id);
+            t2 = verify_expression(id, s->s.Uassign.expr);
+            if (t1 != t2) {
+                sprintf(err_buff,
+                        "type mismatch in initialization of '%s': "
+                        "assigning %s to %s" 
+                        , s->s.Uassign.id, type_to_str(t2), type_to_str(t1));
+                record_error(s->lineno, err_buff);
+            }
             break;
         case STMT_IF:
-            t = verify_expression(id, s->s.Uif.cond);
-            is_type(s->lineno, TYPE_BOOL, t);
+            t1 = verify_expression(id, s->s.Uif.cond);
+            should_be_bool(STMT_IF, t1, s->lineno);
             verify_statements(id, s->s.Uif.then);
             break;
         case STMT_ELSE:
-            t = verify_expression(id, s->s.Uelse.cond);
-            is_type(s->lineno, TYPE_BOOL, t);
+            t1 = verify_expression(id, s->s.Uelse.cond);
+            should_be_bool(STMT_ELSE, t1, s->lineno);
             verify_statements(id, s->s.Uelse.then);
             verify_statements(id, s->s.Uelse.other);
             break;
         case STMT_WHILE:
-            t = verify_expression(id, s->s.Uwhile.cond);
-            is_type(s->lineno, TYPE_BOOL, t);
+            t1 = verify_expression(id, s->s.Uwhile.cond);
+            should_be_bool(STMT_WHILE, t1, s->lineno);
             verify_statements(id, s->s.Uwhile.rep);
             break;
         case STMT_RETURN:
-            t = verify_expression(id, s->s.Ureturn);
-            is_type(line, get_func_type(id), t);
+            t1 = verify_expression(id, s->s.Ureturn);
+            t2 = get_func_type(id);
+            if (t1 != t2) {
+                sprintf(err_buff,
+                        "type mismatch in return statement; "
+                        "actual %s, expected %s" 
+                        , type_to_str(t1), type_to_str(t2));
+                record_error(s->lineno, err_buff);
+            }
             break;
     }
 }
@@ -173,7 +193,6 @@ static Type verify_unop(char *id, Expr e) {
     return TYPE_ERROR;
 }
 
-/* TODO: Change the error message */
 static Type verify_call(char *id, Expr call) {
     int actual = 0, expected = 0;
     Fsym f = lookup_function(call->e.Ucall.id);
@@ -212,10 +231,10 @@ static Type verify_call(char *id, Expr call) {
 
 /* TODO: Change the error message */
 static bool is_type(int line, Type exp, Type got) {
-    if(!exp) {
+    if(!exp || !got) {
         return FALSE;
     } else if(exp != got) {
-        sprintf(err_buff, "Expected '%d', got '%d'", exp, got);
+        sprintf(err_buff, "Expected '%s', got '%s'", type_to_str(exp), type_to_str(got));
         record_error(line, err_buff);
         return FALSE;
     }
@@ -223,6 +242,30 @@ static bool is_type(int line, Type exp, Type got) {
     return TRUE;
 }
 
+static void should_be_bool(StateType s, Type t, int line) {
+    if (t != TYPE_BOOL) {
+        switch (s) {
+            case STMT_WHILE:
+                sprintf(err_buff,
+                        "condition of while loop is %s; should be bool"
+                        , type_to_str(t)
+                        );
+                record_error(line, err_buff);
+                break;
+            case STMT_IF:
+            case STMT_ELSE:
+                sprintf(err_buff,
+                        "condition of if-then-else is %s; should be bool"
+                        , type_to_str(t)
+                        );
+                record_error(line, err_buff);
+                break;
+            default:
+                break;
+        }
+    }
+
+}
 
 static void pop_sym_table(Funcs fs) {
     while(fs) {

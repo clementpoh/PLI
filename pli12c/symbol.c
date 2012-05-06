@@ -3,6 +3,7 @@
 */
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "pli12c.h"
 #include "symbol.h"
@@ -82,7 +83,8 @@ Type    get_var_type(int lineno, char *func, char *var) {
         if(v) {
             return v->type;
         } else {
-            record_error(lineno, "Reference to undeclared variable %s");
+            sprintf(err_buff, "reference to undefined variable '%s'", var);
+            record_error(lineno, err_buff);
         }
     }
 

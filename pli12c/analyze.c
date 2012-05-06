@@ -64,43 +64,49 @@ static void verify_statements(char *id, Stmts ss) {
 
 static void verify_statement(char *id, Stmt s) {
     int line = s->lineno;
+    Param p;
     Type t1, t2;
     switch(s->t) {
         case STMT_READ:
             if(!lookup_variable(id, s->s.Uread)) {
                 sprintf(err_buff, "read into undefined variable '%s'"
                         , s->s.Uread);
-                record_error(s->lineno, err_buff);
+                record_error(line, err_buff);
             }
             break;
         case STMT_WRITE:
             t1 = verify_expression(id, s->s.Uwrite);
             break;
         case STMT_ASSIGN:
-            t1 = get_var_type(line, id, s->s.Uassign.id);
-            t2 = verify_expression(id, s->s.Uassign.expr);
-            if (t1 != t2) {
-                sprintf(err_buff,
-                        "type mismatch in initialization of '%s': "
-                        "assigning %s to %s" 
-                        , s->s.Uassign.id, type_to_str(t2), type_to_str(t1));
-                record_error(s->lineno, err_buff);
+            p = lookup_variable(id, s->s.Uassign.id);
+            if (!p) {
+
+            } else {
+                t1 = get_var_type(line, id, s->s.Uassign.id);
+                t2 = verify_expression(id, s->s.Uassign.expr);
+                if (t1 != t2) {
+                    sprintf(err_buff,
+                            "type mismatch in assignment to '%s': "
+                            "assigning %s to %s" 
+                            , s->s.Uassign.id, type_to_str(t2), type_to_str(t1));
+                    record_error(line, err_buff);
+                }
             }
             break;
         case STMT_IF:
             t1 = verify_expression(id, s->s.Uif.cond);
-            should_be_bool(STMT_IF, t1, s->lineno);
+            should_be_bool(STMT_IF, t1, line);
             verify_statements(id, s->s.Uif.then);
             break;
         case STMT_ELSE:
             t1 = verify_expression(id, s->s.Uelse.cond);
-            should_be_bool(STMT_ELSE, t1, s->lineno);
+            should_be_bool(STMT_ELSE, t1, line);
             verify_statements(id, s->s.Uelse.then);
             verify_statements(id, s->s.Uelse.other);
             break;
         case STMT_WHILE:
             t1 = verify_expression(id, s->s.Uwhile.cond);
-            should_be_bool(STMT_WHILE, t1, s->lineno);
+            should_be_bool(STMT_WHILE, t1, line);
             verify_statements(id, s->s.Uwhile.rep);
             break;
         case STMT_RETURN:
@@ -111,7 +117,7 @@ static void verify_statement(char *id, Stmt s) {
                         "type mismatch in return statement; "
                         "actual %s, expected %s" 
                         , type_to_str(t1), type_to_str(t2));
-                record_error(s->lineno, err_buff);
+                record_error(line, err_buff);
             }
             break;
     }

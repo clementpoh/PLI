@@ -35,10 +35,12 @@ static Func init_declaration(Func f);
 Funcs
 analyze_prog(Funcs prog_funcs)
 {
-    if (!lookup_function("main")) {
+    Fsym f;
+    pop_sym_table(prog_funcs);
+    f = lookup_function("main");
+    if (!f) {
         record_error(0, "there is no function named 'main'");
     }
-    pop_sym_table(prog_funcs);
     init_declarations(prog_funcs);
     verify_types(prog_funcs);
     return prog_funcs;

@@ -173,7 +173,7 @@ static Type verify_binop(char *id, Expr e) {
                 "expected int or real"
                 , binop_to_str(e->e.Ubinop.op), type_to_str(t2));
         record_error(e->lineno, err_buff);
-    } else {
+    } else if (t2 == TYPE_REAL || t2 == TYPE_INT) {
         sprintf(err_buff, "left operand of '%s' has type %s: "
                 "expected int or real"
                 , binop_to_str(e->e.Ubinop.op), type_to_str(t1));

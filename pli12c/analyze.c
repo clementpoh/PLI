@@ -35,8 +35,14 @@ static Func init_declaration(Func f);
 Funcs
 analyze_prog(Funcs prog_funcs)
 {
-    Fsym f;
+    Fsyms syms = s_table;
     pop_sym_table(prog_funcs);
+    while(prog_funcs) {
+
+        syms = syms->rest;
+        prog_funcs = prog_funcs->f_rest;
+    }
+    /*
     f = lookup_function("main");
     if (!f) {
         record_error(0, "there is no function named 'main'");
@@ -54,6 +60,7 @@ analyze_prog(Funcs prog_funcs)
     }
     init_declarations(prog_funcs);
     verify_types(prog_funcs);
+    */
     return prog_funcs;
 }
 

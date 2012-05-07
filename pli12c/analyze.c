@@ -40,6 +40,17 @@ analyze_prog(Funcs prog_funcs)
     f = lookup_function("main");
     if (!f) {
         record_error(0, "there is no function named 'main'");
+    } else {
+        if (f->ret != TYPE_INT) {
+            sprintf(err_buff, "return value of main has type %s; expected int"
+                    , type_to_str(f->ret));
+            record_error(0, err_buff);
+        }
+        if (f->args) {
+            sprintf(err_buff, "main has arguments");
+            record_error(0, err_buff);
+        }
+
     }
     init_declarations(prog_funcs);
     verify_types(prog_funcs);
@@ -93,7 +104,11 @@ static void verify_statement(char *id, Stmt s) {
             } 
             
             t2 = verify_expression(id, s->s.Uassign.expr);
-            if (p && p->type != t2) {
+            if (p && p->type == TYPE_REAL && t2 == TYPE_INT) {
+                pli12yylinenum = s->lineno;
+                s->s.Uassign.expr = make_unop(UNOP_INT_TO_REAL
+                        , s->s.Uassign.expr);
+            } else if (p && p->type != t2) {
                 sprintf(err_buff,
                         "type mismatch in assignment to '%s': "
                         "assigning %s to %s" 
@@ -198,7 +213,7 @@ static Type verify_binop(char *id, Expr e) {
             break;
     }
 
-    if (t1 == t2) {
+    if (t1 == t2 && (t1 == TYPE_REAL || t1 == TYPE_INT)) {
     } else if (t1 == TYPE_INT && t2 == TYPE_REAL) {
         pli12yylinenum = e->lineno;
         e->e.Ubinop.e1 = make_unop(UNOP_INT_TO_REAL, e->e.Ubinop.e1);
@@ -250,11 +265,14 @@ static Type verify_call(char *id, Expr call) {
         while(as || ts) {
             if (as && ts) {
                 t = verify_expression(id, as->e_first);
-                if (ts->t_first != t) {
+                if (ts->t_first == TYPE_REAL && t == TYPE_INT) {
+                    pli12yylinenum = call->lineno;
+                    as->e_first = make_unop(UNOP_INT_TO_REAL, as->e_first);
+                } else if (ts->t_first != t) {
                     sprintf(err_buff,
                             "type mismatch in argument %d of call to '%s': " 
                             "actual %s, expected %s"
-                            , actual, f->id
+                            , actual + 1, f->id
                             , type_to_str(t), type_to_str(ts->t_first));
                     record_error(call->lineno, err_buff);
                 }

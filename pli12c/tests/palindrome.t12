@@ -1,0 +1,96 @@
+	call func_main
+	halt
+func_main:
+	push_stack_frame 6
+# variable s is in stack slot 0
+# variable len is in stack slot 1
+# variable front is in stack slot 2
+# variable back is in stack slot 3
+# variable palindrome is in stack slot 4
+# write
+	string_const r0, "Please input a string:\n"
+	call_builtin print_string
+# read
+	call_builtin read_string
+	store 0, r0
+# assignment
+# store_regs_up_to 0
+	load r0, 0
+	call_builtin string_length
+# load_regs_up_to_and_copy 0
+# end
+	store 1, r0
+# assignment
+	int_const r0, 0
+	store 2, r0
+# assignment
+	load r0, 1
+	int_const r1, 1
+	sub_int r0, r0, r1
+	store 3, r0
+# assignment
+	bool_const r0, true
+	store 4, r0
+# while
+label0:
+	load r0, 2
+	load r1, 3
+	cmp_lt_int r0, r0, r1
+	branch_on_false r0, label1
+# if
+# store_regs_up_to 0
+	load r0, 0
+	load r1, 2
+	int_const r2, 1
+	call_builtin substring
+# load_regs_up_to_and_copy 0
+# end
+# store_regs_up_to 1
+	store 5, r0
+	load r0, 0
+	load r1, 3
+	int_const r2, 1
+	call_builtin substring
+# load_regs_up_to_and_copy 1
+	move r1, r0
+	load r0, 5
+# end
+	cmp_ne_string r0, r0, r1
+	branch_on_false r0, label2
+# assignment
+	bool_const r0, false
+	store 4, r0
+label2:
+# assignment
+	load r0, 2
+	int_const r1, 1
+	add_int r0, r0, r1
+	store 2, r0
+# assignment
+	load r0, 3
+	int_const r1, 1
+	sub_int r0, r0, r1
+	store 3, r0
+	branch_uncond label0
+label1:
+# write
+	string_const r0, "The assertion that <"
+	call_builtin print_string
+# write
+	load r0, 0
+	call_builtin print_string
+# write
+	string_const r0, "> is a palindrome is "
+	call_builtin print_string
+# write
+	load r0, 4
+	call_builtin print_bool
+# write
+	string_const r0, "\n"
+	call_builtin print_string
+# return
+	int_const r0, 0
+	branch_uncond endfunc_main
+endfunc_main:
+	pop_stack_frame 6
+	return

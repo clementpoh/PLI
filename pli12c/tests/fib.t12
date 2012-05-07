@@ -1,0 +1,75 @@
+	call func_main
+	halt
+func_main:
+	push_stack_frame 2
+# variable k is in stack slot 0
+# variable f is in stack slot 1
+# write
+	string_const r0, "Please input N: "
+	call_builtin print_string
+# read
+	call_builtin read_int
+	store 0, r0
+# write
+	string_const r0, "Fibonacci number #"
+	call_builtin print_string
+# write
+	load r0, 0
+	call_builtin print_int
+# write
+	string_const r0, " is "
+	call_builtin print_string
+# write
+# store_regs_up_to 0
+	load r0, 0
+	call func_fib
+# load_regs_up_to_and_copy 0
+# end
+	call_builtin print_int
+# write
+	string_const r0, "\n"
+	call_builtin print_string
+# return
+	int_const r0, 0
+	branch_uncond endfunc_main
+endfunc_main:
+	pop_stack_frame 2
+	return
+func_fib:
+	push_stack_frame 2
+# argument n is in stack slot 0
+	store 0, r0
+# if
+	load r0, 0
+	int_const r1, 1
+	cmp_le_int r0, r0, r1
+	branch_on_false r0, label0
+# return
+	int_const r0, 1
+	branch_uncond endfunc_fib
+	branch_uncond label1
+label0:
+# return
+# store_regs_up_to 0
+	load r0, 0
+	int_const r1, 1
+	sub_int r0, r0, r1
+	call func_fib
+# load_regs_up_to_and_copy 0
+# end
+# store_regs_up_to 1
+	store 1, r0
+	load r0, 0
+	int_const r1, 2
+	sub_int r0, r0, r1
+	call func_fib
+# load_regs_up_to_and_copy 1
+	move r1, r0
+	load r0, 1
+# end
+	add_int r0, r0, r1
+	branch_uncond endfunc_fib
+label1:
+endfunc_fib:
+	pop_stack_frame 2
+	return

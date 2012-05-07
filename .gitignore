@@ -1,0 +1,4 @@
+*.error_diff*
+*.error_out
+*.run_err*
+*.run_out*

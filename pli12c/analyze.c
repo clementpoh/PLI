@@ -161,6 +161,43 @@ static Type verify_binop(char *id, Expr e) {
     Type t2 = verify_expression(id, e->e.Ubinop.e2);
     Type ret = t1;
 
+    switch (e->e.Ubinop.op) {
+        case BINOP_OR:
+        case BINOP_AND:
+            if (t1 != TYPE_BOOL) {
+                sprintf(err_buff, "left operand of '%s' has type %s: "
+                        "expected bool"
+                        , binop_to_str(e->e.Ubinop.op), type_to_str(t1));
+                record_error(e->lineno, err_buff);
+            }
+
+            if (t2 != TYPE_BOOL) {
+                sprintf(err_buff, "right operand of '%s' has type %s: "
+                        "expected bool"
+                        , binop_to_str(e->e.Ubinop.op), type_to_str(t2));
+                record_error(e->lineno, err_buff);
+            }
+            return TYPE_BOOL;
+        case BINOP_EQ:
+        case BINOP_NE:
+        case BINOP_LT:
+        case BINOP_LE:
+        case BINOP_GT:
+        case BINOP_GE:
+            ret = TYPE_BOOL;
+            break;
+        case BINOP_ADD:
+        case BINOP_SUB:
+        case BINOP_MUL:
+        case BINOP_DIV:
+            if (t1 == TYPE_REAL || t2 == TYPE_REAL) {
+                ret = TYPE_REAL;
+            } else {
+                ret = TYPE_INT;
+            } 
+            break;
+    }
+
     if (t1 == t2) {
     } else if (t1 == TYPE_INT && t2 == TYPE_REAL) {
         pli12yylinenum = e->lineno;
@@ -180,31 +217,6 @@ static Type verify_binop(char *id, Expr e) {
                 "expected int or real"
                 , binop_to_str(e->e.Ubinop.op), type_to_str(t1));
         record_error(e->lineno, err_buff);
-    }
-
-    switch (e->e.Ubinop.op) {
-        case BINOP_OR:
-        case BINOP_AND:
-            is_type(e->lineno, TYPE_BOOL, t1);
-            is_type(e->lineno, TYPE_BOOL, t2);
-        case BINOP_EQ:
-        case BINOP_NE:
-        case BINOP_LT:
-        case BINOP_LE:
-        case BINOP_GT:
-        case BINOP_GE:
-            ret = TYPE_BOOL;
-            break;
-        case BINOP_ADD:
-        case BINOP_SUB:
-        case BINOP_MUL:
-        case BINOP_DIV:
-            if (t1 == TYPE_REAL || t2 == TYPE_REAL) {
-                ret = TYPE_REAL;
-            } else {
-                ret = TYPE_INT;
-            } 
-            break;
     }
 
 
@@ -238,7 +250,14 @@ static Type verify_call(char *id, Expr call) {
         while(as || ts) {
             if (as && ts) {
                 t = verify_expression(id, as->e_first);
-                is_type(call->lineno, ts->t_first, t);
+                if (ts->t_first != t) {
+                    sprintf(err_buff,
+                            "type mismatch in argument %d of call to '%s': " 
+                            "actual %s, expected %s"
+                            , actual, f->id
+                            , type_to_str(t), type_to_str(ts->t_first));
+                    record_error(call->lineno, err_buff);
+                }
             } 
 
             actual   += (as) ? 1 : 0;

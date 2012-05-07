@@ -122,15 +122,15 @@ void	init_with_builtin_functions(void) {
     s_table = ins_sym(sym, s_table);
 
 
-    args = ins_type(TYPE_REAL, args);
+    args = ins_type(TYPE_REAL, NULL);
     sym = make_builtin("sqrt", args, TYPE_REAL);
     s_table = ins_sym(sym, s_table);
 
-    args = ins_type(TYPE_REAL, args);
+    args = ins_type(TYPE_REAL, NULL);
     sym = make_builtin("trunc", args, TYPE_INT);
     s_table = ins_sym(sym, s_table);
 
-    args = ins_type(TYPE_REAL, args);
+    args = ins_type(TYPE_REAL, NULL);
     sym = make_builtin("round", args, TYPE_INT);
     s_table = ins_sym(sym, s_table);
 }

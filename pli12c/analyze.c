@@ -35,14 +35,6 @@ static Func init_declaration(Func f);
 Funcs
 analyze_prog(Funcs prog_funcs)
 {
-    Fsyms syms = s_table;
-    pop_sym_table(prog_funcs);
-    while(prog_funcs) {
-
-        syms = syms->rest;
-        prog_funcs = prog_funcs->f_rest;
-    }
-    /*
     f = lookup_function("main");
     if (!f) {
         record_error(0, "there is no function named 'main'");
@@ -60,7 +52,7 @@ analyze_prog(Funcs prog_funcs)
     }
     init_declarations(prog_funcs);
     verify_types(prog_funcs);
-    */
+    
     return prog_funcs;
 }
 
@@ -259,6 +251,13 @@ static Type verify_unop(char *id, Expr e) {
         case UNOP_INT_TO_REAL:
             return TYPE_REAL;
         case UNOP_UMINUS:
+            if (t == TYPE_BOOL || t == TYPE_STRING) {
+                sprintf(err_buff, "operand of '-' has type %s: "
+                        "expected int or real"
+                        , binop_to_str(e->e.Ubinop.op), type_to_str(t));
+                record_error(e->lineno, err_buff);
+                return TYPE_ERROR;
+            }
             return t;
     }
 
@@ -319,7 +318,6 @@ static Type verify_call(char *id, Expr call) {
     }
 }
 
-/* TODO: Change the error message */
 static bool is_type(int line, Type exp, Type got) {
     if(!exp || !got) {
         return FALSE;

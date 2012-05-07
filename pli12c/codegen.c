@@ -12,12 +12,30 @@
 Code
 translate_prog(Funcs prog)
 {
+    code = NULL;
     while(prog) {
-        translate_func(prog);
+        code = seq(translate_func(prog->f_first), code);
         prog = prog-f_rest;
     }
 
     return code;
 }
 
-/* This is for you to fill in */
+Code
+translate_func(Func f) {
+    Instr lbl = make_label(f->id);
+    
+    
+    
+    
+
+}
+
+make_label(char *str) {
+    Instr new = checked_malloc(sizeof(*new));
+
+    new->opcode = OP_LABEL;
+    new->string_const = str;
+
+    return new;
+}

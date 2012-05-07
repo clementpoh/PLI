@@ -1,8 +1,7 @@
 set history save on
 set history expansion on
 
-break analyze.c:93
+break verify_binop
 
-run tests/fac.pli12 ../out
-# display *parsed_prog->f_first->stmts->s_first
-display line
+run tests/bad1.pli12 
+display *e

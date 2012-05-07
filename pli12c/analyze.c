@@ -224,12 +224,14 @@ static Type verify_binop(char *id, Expr e) {
                 pli12yylinenum = e->lineno;
                 e->e.Ubinop.e2 = make_unop(UNOP_INT_TO_REAL, e->e.Ubinop.e2);
                 return TYPE_REAL;
-            } else if (t2 == TYPE_BOOL || t2 == TYPE_STRING) {
+            } 
+            if (t2 == TYPE_BOOL || t2 == TYPE_STRING) {
                 sprintf(err_buff, "right operand of '%s' has type %s: "
                         "expected int or real"
                         , binop_to_str(e->e.Ubinop.op), type_to_str(t2));
                 record_error(e->lineno, err_buff);
-            } else if (t1 == TYPE_BOOL || t1 == TYPE_STRING) {
+            }
+            if (t1 == TYPE_BOOL || t1 == TYPE_STRING) {
                 sprintf(err_buff, "left operand of '%s' has type %s: "
                         "expected int or real"
                         , binop_to_str(e->e.Ubinop.op), type_to_str(t1));

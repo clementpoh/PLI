@@ -12,8 +12,12 @@
 Code
 translate_prog(Funcs prog)
 {
-    /* This is only a placeholder. */
-    return NULL;
+    while(prog) {
+        translate_func(prog);
+        prog = prog-f_rest;
+    }
+
+    return code;
 }
 
 /* This is for you to fill in */

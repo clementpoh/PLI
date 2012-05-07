@@ -18,6 +18,8 @@ struct s_sym {
 	Types	args;
     Status  sts;
 
+	int lineno;
+
 	Params	vars;
 };
 

@@ -44,11 +44,11 @@ analyze_prog(Funcs prog_funcs)
         if (f->ret != TYPE_INT) {
             sprintf(err_buff, "return value of main has type %s; expected int"
                     , type_to_str(f->ret));
-            record_error(0, err_buff);
+            record_error(f->lineno, err_buff);
         }
         if (f->args) {
             sprintf(err_buff, "main has arguments");
-            record_error(0, err_buff);
+            record_error(f->lineno, err_buff);
         }
 
     }
@@ -108,7 +108,7 @@ static void verify_statement(char *id, Stmt s) {
                 pli12yylinenum = s->lineno;
                 s->s.Uassign.expr = make_unop(UNOP_INT_TO_REAL
                         , s->s.Uassign.expr);
-            } else if (p && p->type != t2) {
+            } else if (p && p->type && p->type != t2) {
                 sprintf(err_buff,
                         "type mismatch in assignment to '%s': "
                         "assigning %s to %s" 
@@ -174,19 +174,18 @@ static Type verify_expression(char *id, Expr e) {
 static Type verify_binop(char *id, Expr e) {
     Type t1 = verify_expression(id, e->e.Ubinop.e1);
     Type t2 = verify_expression(id, e->e.Ubinop.e2);
-    Type ret = t1;
 
     switch (e->e.Ubinop.op) {
         case BINOP_OR:
         case BINOP_AND:
-            if (t1 != TYPE_BOOL) {
+            if (t1 && t1 != TYPE_BOOL) {
                 sprintf(err_buff, "left operand of '%s' has type %s: "
                         "expected bool"
                         , binop_to_str(e->e.Ubinop.op), type_to_str(t1));
                 record_error(e->lineno, err_buff);
             }
 
-            if (t2 != TYPE_BOOL) {
+            if (t2 && t2 != TYPE_BOOL) {
                 sprintf(err_buff, "right operand of '%s' has type %s: "
                         "expected bool"
                         , binop_to_str(e->e.Ubinop.op), type_to_str(t2));
@@ -199,43 +198,47 @@ static Type verify_binop(char *id, Expr e) {
         case BINOP_LE:
         case BINOP_GT:
         case BINOP_GE:
-            ret = TYPE_BOOL;
+            if (t1 == t2) {
+                return TYPE_BOOL;
+            } else if (t1 == TYPE_INT && t2 == TYPE_REAL) {
+                pli12yylinenum = e->lineno;
+                e->e.Ubinop.e1 = make_unop(UNOP_INT_TO_REAL, e->e.Ubinop.e1);
+                return TYPE_BOOL;
+            } else if (t2 == TYPE_INT && t1 == TYPE_REAL) {
+                pli12yylinenum = e->lineno;
+                e->e.Ubinop.e2 = make_unop(UNOP_INT_TO_REAL, e->e.Ubinop.e2);
+                return TYPE_BOOL;
+            }
             break;
         case BINOP_ADD:
         case BINOP_SUB:
         case BINOP_MUL:
         case BINOP_DIV:
-            if (t1 == TYPE_REAL || t2 == TYPE_REAL) {
-                ret = TYPE_REAL;
-            } else {
-                ret = TYPE_INT;
-            } 
+            if (t1 == t2 && (t1 == TYPE_INT || t1 == TYPE_REAL)) {
+                return t1;
+            } else if (t1 == TYPE_INT && t2 == TYPE_REAL) {
+                pli12yylinenum = e->lineno;
+                e->e.Ubinop.e1 = make_unop(UNOP_INT_TO_REAL, e->e.Ubinop.e1);
+                return TYPE_REAL;
+            } else if (t2 == TYPE_INT && t1 == TYPE_REAL) {
+                pli12yylinenum = e->lineno;
+                e->e.Ubinop.e2 = make_unop(UNOP_INT_TO_REAL, e->e.Ubinop.e2);
+                return TYPE_REAL;
+            } else if (t2 == TYPE_BOOL || t2 == TYPE_STRING) {
+                sprintf(err_buff, "right operand of '%s' has type %s: "
+                        "expected int or real"
+                        , binop_to_str(e->e.Ubinop.op), type_to_str(t2));
+                record_error(e->lineno, err_buff);
+            } else if (t1 == TYPE_BOOL || t1 == TYPE_STRING) {
+                sprintf(err_buff, "left operand of '%s' has type %s: "
+                        "expected int or real"
+                        , binop_to_str(e->e.Ubinop.op), type_to_str(t1));
+                record_error(e->lineno, err_buff);
+            }
             break;
     }
 
-    if (t1 == t2 && (t1 == TYPE_REAL || t1 == TYPE_INT)) {
-    } else if (t1 == TYPE_INT && t2 == TYPE_REAL) {
-        pli12yylinenum = e->lineno;
-        e->e.Ubinop.e1 = make_unop(UNOP_INT_TO_REAL, e->e.Ubinop.e1);
-        t1 = TYPE_REAL;
-    } else if (t2 == TYPE_INT && t1 == TYPE_REAL) {
-        pli12yylinenum = e->lineno;
-        e->e.Ubinop.e2 = make_unop(UNOP_INT_TO_REAL, e->e.Ubinop.e2);
-        t2 = TYPE_REAL;
-    } else if (t1 == TYPE_REAL || t1 == TYPE_INT) {
-        sprintf(err_buff, "right operand of '%s' has type %s: "
-                "expected int or real"
-                , binop_to_str(e->e.Ubinop.op), type_to_str(t2));
-        record_error(e->lineno, err_buff);
-    } else if (t2 == TYPE_REAL || t2 == TYPE_INT) {
-        sprintf(err_buff, "left operand of '%s' has type %s: "
-                "expected int or real"
-                , binop_to_str(e->e.Ubinop.op), type_to_str(t1));
-        record_error(e->lineno, err_buff);
-    }
-
-
-    return ret;
+    return TYPE_ERROR;
 }
 
 static Type verify_unop(char *id, Expr e) {
@@ -268,7 +271,7 @@ static Type verify_call(char *id, Expr call) {
                 if (ts->t_first == TYPE_REAL && t == TYPE_INT) {
                     pli12yylinenum = call->lineno;
                     as->e_first = make_unop(UNOP_INT_TO_REAL, as->e_first);
-                } else if (ts->t_first != t) {
+                } else if (t && t != ts->t_first) {
                     sprintf(err_buff,
                             "type mismatch in argument %d of call to '%s': " 
                             "actual %s, expected %s"
@@ -276,7 +279,9 @@ static Type verify_call(char *id, Expr call) {
                             , type_to_str(t), type_to_str(ts->t_first));
                     record_error(call->lineno, err_buff);
                 }
-            } 
+            } else if (as) {
+                verify_expression(id, as->e_first);
+            }
 
             actual   += (as) ? 1 : 0;
             expected += (ts) ? 1 : 0;
@@ -295,6 +300,12 @@ static Type verify_call(char *id, Expr call) {
     } else {
         sprintf(err_buff, "call to undefined function '%s'" , call->e.Ucall.id);
         record_error(call->lineno, err_buff);
+
+        while(as) {
+            verify_expression(id, as->e_first);
+            as = as->e_rest;
+        }
+
         return TYPE_ERROR;
     }
 }

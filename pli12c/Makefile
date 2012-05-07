@@ -49,7 +49,7 @@ clobber: realclean
 
 .PHONY: test
 test:	pli12c clean
-	cd tests; ./Runtests -p
+	cd tests; ./Runtests -e
 
 tests: pli12c
 	#../good_pli12c tests/fac.pli12 2> ../exp; 

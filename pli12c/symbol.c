@@ -143,6 +143,8 @@ static Fsym      make_defined(Func f) {
     new->ret = f->type;
     new->sts = USER_DEFINED;
 
+    new->lineno = f->lineno;
+
     new->vars = make_vars(f);
 
     return new;
@@ -243,6 +245,8 @@ static Fsym make_builtin(const char *id, Types args, Type t) {
     new->args = args;
     new->ret = t;
     new->sts = BUILTIN;
+
+    new->lineno = 0;
 
     return new;
 }

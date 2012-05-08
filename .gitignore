@@ -2,9 +2,11 @@
 *.error_out
 *.run_err*
 *.run_out*
+*.exe
+
+pli12c
 PERF
 tags
-*.exe
-pli12c
+out
 
 .gdb_history

@@ -52,9 +52,7 @@ test:	pli12c clean
 	cd tests; ./Runtests -e
 
 tests: pli12c
-	#../good_pli12c tests/fac.pli12 2> ../exp; 
-	./pli12c tests/fac.pli12 2> ../out; \
-	vimdiff ../exp ../out
+	./pli12c tests/hello.pli12 ../out 
 
 $(OBJ):		$(HDR)
 

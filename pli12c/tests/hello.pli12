@@ -1,0 +1,4 @@
+function main() returns int
+begin
+	write "Hello World\n";
+end

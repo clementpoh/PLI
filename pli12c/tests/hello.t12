@@ -1,0 +1,10 @@
+	call func_main
+	halt
+func_main:
+	push_stack_frame 0
+# write
+	string_const r0, "Hello World\n"
+	call_builtin print_string
+endfunc_main:
+	pop_stack_frame 0
+	return

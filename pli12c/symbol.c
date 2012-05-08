@@ -12,14 +12,6 @@
 
 char err_buff[BUFFER_LEN];
 
-typedef struct s_syms  *Fsyms;
-
-struct s_syms {
-	Fsym     first;
-	Fsyms    rest;
-};
-
-
 static Fsyms s_table = NULL;
 
 static Param    lookup_var(char *id, Params vs);

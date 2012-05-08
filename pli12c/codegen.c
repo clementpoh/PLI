@@ -9,10 +9,18 @@
 #include    "t12.h"
 #include    "codegen.h"
 
+make_call(char *func);
+make_label(char *str);
+Code translate_func(Func f);
+
 Code
 translate_prog(Funcs prog)
 {
-    code = NULL;
+    Instr call = { .op = OP_CALL, .string_const = "main" };
+    Instr halt = { .op = OP_HALT };
+
+    Code code = instr_to_code(call);
+    code = seq(translate_func(halt), code);
     while(prog) {
         code = seq(translate_func(prog->f_first), code);
         prog = prog-f_rest;
@@ -29,6 +37,15 @@ translate_func(Func f) {
     
     
 
+}
+
+make_call(char *func) {
+    Instr new = checked_malloc(sizeof(*new));
+
+    new->opcode = OP_CALL;
+    new->string_const = "main";
+
+    return new;
 }
 
 make_label(char *str) {

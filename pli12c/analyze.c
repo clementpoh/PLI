@@ -35,6 +35,9 @@ static Func init_declaration(Func f);
 Funcs
 analyze_prog(Funcs prog_funcs)
 {
+    Fsym f;
+        
+    pop_sym_table(prog_funcs);
     f = lookup_function("main");
     if (!f) {
         record_error(0, "there is no function named 'main'");
@@ -254,7 +257,7 @@ static Type verify_unop(char *id, Expr e) {
             if (t == TYPE_BOOL || t == TYPE_STRING) {
                 sprintf(err_buff, "operand of '-' has type %s: "
                         "expected int or real"
-                        , binop_to_str(e->e.Ubinop.op), type_to_str(t));
+                        , type_to_str(t));
                 record_error(e->lineno, err_buff);
                 return TYPE_ERROR;
             }

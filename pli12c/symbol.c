@@ -31,7 +31,7 @@ static Fsyms    ins_sym(Fsym s, Fsyms ss);
 
 
 /* Returns NULL if id is not in the function table. */
-Fsym    lookup_function(char *id) {
+Fsym    lookup_function(const char *id) {
     Fsyms curr = s_table;
     while(curr) {
         if (!strcmp(id, curr->first->id)) {

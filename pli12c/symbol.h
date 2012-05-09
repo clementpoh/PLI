@@ -40,7 +40,7 @@ extern  char    err_buff[];
 extern	void	init_with_builtin_functions(void);
 extern	bool	add_user_function(Func f);
 
-extern	Fsym    lookup_function(char *id);
+extern	Fsym    lookup_function(const char *id);
 extern  Param   lookup_variable(char *func, char *var);
 
 extern  Type    get_func_type(char *func);

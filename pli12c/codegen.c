@@ -65,6 +65,20 @@ Code translate_stmt(char *id, Stmt s) {
 
     switch (s->t) {
         case STMT_ASSIGN:
+            // Comment
+            instr = make_op(OP_COMMENT);
+            instr->string_const = "assignment";
+            code = instr_to_code(instr);
+
+            // Expression
+            var = lookup_variable(id, s->s.Uassign.id);
+            code = seq(code, translate_expr(s->s.Uassign.expr));
+
+            // Store
+            instr = make_op(OP_STORE);
+            instr->rs1 = 0;
+            instr->int_const = var->pos;
+            code = seq(code, instr_to_code(instr));
             break;
         case STMT_READ:
             // Comment
@@ -125,9 +139,25 @@ Code translate_stmt(char *id, Stmt s) {
             code = seq(code, instr_to_code(instr));
             break;
         case STMT_IF:
+            // Comment
+            instr = make_op(OP_COMMENT);
+            instr->string_const = "if";
+            code = instr_to_code(instr);
         case STMT_ELSE:
+            // Comment
+            instr = make_op(OP_COMMENT);
+            instr->string_const = "if";
+            code = instr_to_code(instr);
         case STMT_WHILE:
+            // Comment
+            instr = make_op(OP_COMMENT);
+            instr->string_const = "while";
+            code = instr_to_code(instr);
         case STMT_RETURN:
+            // Comment
+            instr = make_op(OP_COMMENT);
+            instr->string_const = "return";
+            code = instr_to_code(instr);
             break;
     }
 

@@ -11,15 +11,16 @@
 #include    "pli12c.h"
 #include    "symbol.h"
 
+static int  reg = 0;
 static char buffer[128];
 
-Instr make_op_call(char *str);
+Instr make_op_call(const char *str);
 Instr make_op(Opcode op);
 
 Code translate_func(Func f);
 
-Code translate_stmts(Stmts ss);
-Code translate_stmt(Stmt s);
+Code translate_stmts(char *id, Stmts ss);
+Code translate_stmt(char *id, Stmt s);
 
 Code translate_expr(Expr e);
 
@@ -49,7 +50,7 @@ translate_func(Func f) {
     Stmts   ss = f->stmts;
     Code    code = translate_prologue(f->id, f->decls, &size);
 
-    code = seq(code, translate_stmts(ss));
+    code = seq(code, translate_stmts(f->id, ss));
 
     code = seq(code, translate_epilogue(f->id, size));
 
@@ -57,16 +58,24 @@ translate_func(Func f) {
 }
 
 
-Code translate_stmt(Stmt s) {
+Code translate_stmt(char *id, Stmt s) {
     Code    code;
     Instr   instr;
+    Param   var;
 
     switch (s->t) {
         case STMT_ASSIGN:
             break;
         case STMT_READ:
+            // Comment
+            instr = make_op(OP_COMMENT);
+            instr->string_const = "read";
+            code = instr_to_code(instr);
+
+            // Read
             instr = make_op(OP_CALL_BUILTIN);
-            switch (get_var_type(s->t.Uread)) {
+            var = lookup_variable(id, s->s.Uread);
+            switch (var->type) {
                 case TYPE_INT:
                     instr->string_const = "read_int";
                     break;
@@ -81,11 +90,13 @@ Code translate_stmt(Stmt s) {
                 default:
                     break;
             }
-            code = instr_to_code(code);
+            code = seq(code, instr_to_code(instr));
 
+            // Store
             instr = make_op(OP_STORE);
             instr->rs1 = 0;
-            instr->int_const = ();
+            instr->int_const = var->pos;
+            code = seq(code, instr_to_code(instr));
             break;
         case STMT_WRITE:
             // Comment
@@ -100,14 +111,14 @@ Code translate_stmt(Stmt s) {
                 case TYPE_INT:
                     instr->string_const = "print_int";
                     break;
+                case TYPE_REAL:
+                    instr->string_const = "print_real";
+                    break;
                 case TYPE_BOOL:
                     instr->string_const = "print_bool";
                     break;
                 case TYPE_STRING:
                     instr->string_const = "print_string";
-                    break;
-                case TYPE_REAL:
-                    instr->string_const = "print_real";
                 default:
                     break;
             }
@@ -124,13 +135,44 @@ Code translate_stmt(Stmt s) {
 }
 
 Code translate_expr(Expr e) {
-    return NULL;
+    Code    code;
+    Instr   instr;
+    switch(e->t) {
+        case EXPR_ID:
+        case EXPR_CONST: 
+            switch (e->r) {
+                case TYPE_INT:
+                    instr = make_op(OP_INT_CONST);
+                    instr->rd = reg++;
+                    instr->int_const = e->e.Uconst->val.Uint;
+                case TYPE_REAL:
+                    instr = make_op(OP_REAL_CONST);
+                    instr->rd = reg++;
+                    instr->real_const = e->e.Uconst->val.Ureal;
+                case TYPE_BOOL:
+                    instr = make_op(OP_INT_CONST);
+                    instr->rd = reg++;
+                    instr->bool_const = e->e.Uconst->val.Ubool;
+                case TYPE_STRING:
+                    instr = make_op(OP_STRING_CONST);
+                    instr->rd = reg++;
+                    instr->string_const = checked_strdup(e->e.Uconst->val.Ustr);
+                default:
+                    break;
+            }
+            code = instr_to_code(instr);
+        case EXPR_BINOP:
+        case EXPR_UNOP:
+        case EXPR_FUNC:
+            break;
+    }
+    return code;
 }
 
-Code translate_stmts(Stmts ss) {
+Code translate_stmts(char *id, Stmts ss) {
     Code code;
     while (ss) {
-        code = seq(code, translate_stmt(ss->s_first));
+        code = seq(code, translate_stmt(id, ss->s_first));
         ss = ss->s_rest;
     }
 
@@ -193,7 +235,7 @@ Code translate_epilogue(char *str, int size) {
     return code;
 }
 
-Instr make_op_call(char *str) {
+Instr make_op_call(const char *str) {
     Instr new = make_op(OP_CALL);
     sprintf(buffer, "func_%s", str);
     

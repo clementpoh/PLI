@@ -1,7 +1,4 @@
 function main() returns int
 begin
-	declare x int;
-
-	read x;
 	write "Hello World\n";
 end

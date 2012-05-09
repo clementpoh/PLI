@@ -1,7 +1,6 @@
 set history save on
 set history expansion on
 
-break verify_binop
+break translate_expr
 
-run tests/bad1.pli12 
-display *e
+run tests/hello.pli12  ../out

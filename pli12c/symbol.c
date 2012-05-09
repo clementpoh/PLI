@@ -24,7 +24,7 @@ static Params   params_to_vars(Params ps, Params new);
 static Param    clone_param(Param p);
 
 static Params   decls_to_vars(Decls ds, Params vs);
-static Param    decl_to_var(Decl d);
+static Param    decl_to_var(Decl d, int pos);
 
 static Fsym     make_builtin(const char *id, Types args, Type t);
 static Fsyms    ins_sym(Fsym s, Fsyms ss);
@@ -184,31 +184,28 @@ static Param clone_param(Param p) {
 }
 
 static Params   decls_to_vars(Decls ds, Params vs) {
+    int pos = 0;
     Param v;
     Decl d;
 
     while(ds) {
         d = ds->d_first;
         if(!lookup_var(d->id, vs)) {
-            v = decl_to_var(d);
+            v = decl_to_var(d, pos++);
             vs = ins_param(v, vs);
-            /*
-            if(d->val) {
-                if(d->val->type != d->type) {
-                    sprintf(err_buff,
-                            "type mismatch in initialization of '%s': "
-                            "assigning %s to %s" 
-                            , d->id
-                            , type_to_str(d->val->type)
-                            , type_to_str(d->type)
-                            );
-                    record_error(d->lineno, err_buff);
+            if(d->val && d->val->type != d->type) {
+                sprintf(err_buff,
+                        "type mismatch in initialization of '%s': "
+                        "assigning %s to %s" 
+                        , d->id
+                        , type_to_str(d->val->type)
+                        , type_to_str(d->type)
+                        );
+                record_error(d->lineno, err_buff);
 
-                    free(d->val);
-                    d->val = NULL;
-                }
+                free(d->val);
+                d->val = NULL;
             }
-            */
         } else {
             sprintf(err_buff, "variable '%s' redefined", d->id);
             record_error(d->lineno, err_buff);
@@ -222,11 +219,13 @@ static Params   decls_to_vars(Decls ds, Params vs) {
     return vs;
 }
 
-static Param decl_to_var(Decl d) {
+static Param decl_to_var(Decl d, int pos) {
     Param new = checked_malloc(sizeof(*new));
 
     new->id = checked_strdup(d->id);
     new->type = d->type;
+    new->pos = pos;
+
     new->lineno = d->lineno;
     
     return new;

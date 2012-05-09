@@ -82,6 +82,7 @@ struct s_decl {
 struct s_param {
     char    *id;
     Type    type;
+    int     pos;
 
     int lineno;
 };

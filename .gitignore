@@ -4,7 +4,6 @@
 *.run_out*
 *.exe
 
-pli12c
 PERF
 tags
 out

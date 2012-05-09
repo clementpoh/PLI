@@ -145,14 +145,17 @@ Code translate_expr(Expr e) {
                     instr = make_op(OP_INT_CONST);
                     instr->rd = reg++;
                     instr->int_const = e->e.Uconst->val.Uint;
+                    break;
                 case TYPE_REAL:
                     instr = make_op(OP_REAL_CONST);
                     instr->rd = reg++;
                     instr->real_const = e->e.Uconst->val.Ureal;
+                    break;
                 case TYPE_BOOL:
                     instr = make_op(OP_INT_CONST);
                     instr->rd = reg++;
                     instr->bool_const = e->e.Uconst->val.Ubool;
+                    break;
                 case TYPE_STRING:
                     instr = make_op(OP_STRING_CONST);
                     instr->rd = reg++;

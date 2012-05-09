@@ -1,106 +1,12 @@
 	call func_main
 	halt
 func_main:
+# variable is x in stack slot 0
+# variable is y in stack slot 1
+# variable is quotient in stack slot 2
+# variable is remainder in stack slot 3
+# variable is temp in stack slot 4
 	push_stack_frame 5
-# variable x is in stack slot 0
-# variable y is in stack slot 1
-# variable quotient is in stack slot 2
-# variable remainder is in stack slot 3
-# variable temp is in stack slot 4
-# write
-	string_const r0, "Please input two positive ints: "
-	call_builtin print_string
-# read
-	call_builtin read_int
-	store 0, r0
-# read
-	call_builtin read_int
-	store 1, r0
-# write
-	string_const r0, "\n"
-	call_builtin print_string
-# if
-	load r0, 0
-	load r1, 1
-	cmp_lt_int r0, r0, r1
-	branch_on_false r0, label0
-# assignment
-	load r0, 0
-	store 4, r0
-# assignment
-	load r0, 1
-	store 0, r0
-# assignment
-	load r0, 4
-	store 1, r0
-	branch_uncond label1
-label0:
-# write
-	string_const r0, "leaving ints in original order\n"
-	call_builtin print_string
-label1:
-# write
-	string_const r0, "The gcd of "
-	call_builtin print_string
-# write
-	load r0, 0
-	call_builtin print_int
-# write
-	string_const r0, " and "
-	call_builtin print_string
-# write
-	load r0, 1
-	call_builtin print_int
-# write
-	string_const r0, " is "
-	call_builtin print_string
-# assignment
-	load r0, 0
-	load r1, 1
-	div_int r0, r0, r1
-	store 2, r0
-# assignment
-	load r0, 0
-	load r1, 2
-	load r2, 1
-	mul_int r1, r1, r2
-	sub_int r0, r0, r1
-	store 3, r0
-# while
-label2:
-	load r0, 3
-	int_const r1, 0
-	cmp_ne_int r0, r0, r1
-	branch_on_false r0, label3
-# assignment
-	load r0, 1
-	store 0, r0
-# assignment
-	load r0, 3
-	store 1, r0
-# assignment
-	load r0, 0
-	load r1, 1
-	div_int r0, r0, r1
-	store 2, r0
-# assignment
-	load r0, 0
-	load r1, 2
-	load r2, 1
-	mul_int r1, r1, r2
-	sub_int r0, r0, r1
-	store 3, r0
-	branch_uncond label2
-label3:
-# write
-	load r0, 1
-	call_builtin print_int
-# write
-	string_const r0, "\n"
-	call_builtin print_string
-# return
-	int_const r0, 0
-	branch_uncond endfunc_main
 endfunc_main:
 	pop_stack_frame 5
 	return

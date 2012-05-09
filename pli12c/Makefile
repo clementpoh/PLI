@@ -37,7 +37,7 @@ tags:		$(SRC)
 
 .PHONY: clean
 clean:
-		-/bin/rm $(OBJ) parser.c parser.h parser.output scanner.c \
+		-/bin/rm $(OBJ) parser.c parser.h parser.output scanner.c pli12c.stackdump \
 			> /dev/null 2>&1
 
 .PHONY: realclean

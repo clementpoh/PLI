@@ -4,9 +4,12 @@
 *.run_diff*
 *.run_out*
 *.exe
+*.o
 
 PERF
 tags
 out
 
 .gdb_history
+
+t12/*

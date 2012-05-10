@@ -86,19 +86,11 @@ Code translate_stmt(char *id, Stmt s) {
             instr = make_op(OP_CALL_BUILTIN);
             var = lookup_variable(id, s->s.Uread);
             switch (var->type) {
-                case TYPE_INT:
-                    instr->string_const = "read_int";
-                    break;
-                case TYPE_BOOL:
-                    instr->string_const = "read_bool";
-                    break;
-                case TYPE_STRING:
-                    instr->string_const = "read_string";
-                    break;
-                case TYPE_REAL:
-                    instr->string_const = "read_real";
-                default:
-                    break;
+                case TYPE_INT: instr->string_const = "read_int"; break;
+                case TYPE_REAL: instr->string_const = "read_real"; break;
+                case TYPE_BOOL: instr->string_const = "read_bool"; break;
+                case TYPE_STRING: instr->string_const = "read_string"; break;
+                case TYPE_ERROR: instr->string_const = "read_error"; break;
             }
             code = seq(code, instr_to_code(instr));
             code = seq(code, save_to(var->pos, reg));
@@ -110,19 +102,11 @@ Code translate_stmt(char *id, Stmt s) {
             // Call
             instr = make_op(OP_CALL_BUILTIN);
             switch (s->s.Uwrite->r) {
-                case TYPE_INT:
-                    instr->string_const = "print_int";
-                    break;
-                case TYPE_REAL:
-                    instr->string_const = "print_real";
-                    break;
-                case TYPE_BOOL:
-                    instr->string_const = "print_bool";
-                    break;
-                case TYPE_STRING:
-                    instr->string_const = "print_string";
-                default:
-                    break;
+                case TYPE_INT: instr->string_const = "print_int"; break;
+                case TYPE_REAL: instr->string_const = "print_real"; break;
+                case TYPE_BOOL: instr->string_const = "print_bool"; break;
+                case TYPE_STRING: instr->string_const = "print_string"; break;
+                case TYPE_ERROR: instr->string_const = "print_error"; break;
             }
             code = seq(code, instr_to_code(instr));
             break;
@@ -174,37 +158,53 @@ Code translate_binop(Expr e) {
     Instr   instr;
     switch (e->e.Ubinop.op) {
         case BINOP_OR:
-            instr = make_op(OP_OR);
+            instr = make_arith(OP_OR, e->r);
             break;
         case BINOP_AND:
-            instr = make_op(OP_AND);
+            instr = make_arith(OP_AND, e->r);
             break;
         case BINOP_EQ:
+            instr = make_arith(OP_CMP_EQ, e->e.Ubinop.e1->t);
             break;
         case BINOP_NE:
+            instr = make_arith(OP_CMP_NE, e->e.Ubinop.e1->t);
             break;
         case BINOP_LT:
+            instr = make_arith(OP_CMP_LT, e->e.Ubinop.e1->t);
             break;
         case BINOP_LE:
+            instr = make_arith(OP_CMP_LE, e->e.Ubinop.e1->t);
             break;
         case BINOP_GT:
+            instr = make_arith(OP_CMP_GT, e->e.Ubinop.e1->t);
             break;
         case BINOP_GE:
+            instr = make_arith(OP_CMP_GE, e->e.Ubinop.e1->t);
             break;
         case BINOP_ADD:
-            make_arith(OP_ADD, e->r);
+            instr = make_arith(OP_ADD, e->r);
             break;
         case BINOP_SUB:
-            make_arith(OP_SUB, e->r);
+            instr = make_arith(OP_SUB, e->r);
             break;
         case BINOP_MUL:
-            make_arith(OP_MUL, e->r);
+            instr = make_arith(OP_MUL, e->r);
             break;
         case BINOP_DIV:
-            make_arith(OP_DIV, e->r);
+            instr = make_arith(OP_DIV, e->r);
             break;
     }
     return instr_to_code(instr);
+}
+
+Code translate_binop(Expr e) {
+    Instr   instr;
+    switch (e->e.Uunop.op) {
+        case UNOP_NOT:
+        case UNOP_UMINUS:
+        case UNOP_INT_TO_REAL:
+
+    }
 }
 
 Code translate_stmts(char *id, Stmts ss) {

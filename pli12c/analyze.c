@@ -210,6 +210,8 @@ static Type verify_binop(char *id, Expr e) {
                 pli12yylinenum = e->lineno;
                 e->e.Ubinop.e2 = make_unop(UNOP_INT_TO_REAL, e->e.Ubinop.e2);
                 return TYPE_BOOL;
+            } else {
+                is_type(e->lineno, t1, t2);
             }
             break;
         case BINOP_ADD:
@@ -227,6 +229,7 @@ static Type verify_binop(char *id, Expr e) {
                 e->e.Ubinop.e2 = make_unop(UNOP_INT_TO_REAL, e->e.Ubinop.e2);
                 return TYPE_REAL;
             } 
+
             if (t2 == TYPE_BOOL || t2 == TYPE_STRING) {
                 sprintf(err_buff, "right operand of '%s' has type %s: "
                         "expected int or real"

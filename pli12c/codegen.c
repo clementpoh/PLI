@@ -22,7 +22,7 @@ Code translate_func(Func f);
 Code translate_stmts(char *id, Stmts ss);
 Code translate_stmt(char *id, Stmt s);
 
-Code translate_expr(Expr e);
+Code translate_expr(char *id, Expr e);
 
 Code translate_prologue(char *str, Decls ds, int *size);
 Code translate_epilogue(char *str, int size);
@@ -72,7 +72,7 @@ Code translate_stmt(char *id, Stmt s) {
 
             // Expression
             var = lookup_variable(id, s->s.Uassign.id);
-            code = seq(code, translate_expr(s->s.Uassign.expr));
+            code = seq(code, translate_expr(id, s->s.Uassign.expr));
 
             // Store
             instr = make_op(OP_STORE);
@@ -118,7 +118,7 @@ Code translate_stmt(char *id, Stmt s) {
             instr->string_const = "write";
             code = instr_to_code(instr);
             // Expression
-            code = seq(code, translate_expr(s->s.Uwrite));
+            code = seq(code, translate_expr(id, s->s.Uwrite));
             // Call
             instr = make_op(OP_CALL_BUILTIN);
             switch (s->s.Uwrite->r) {
@@ -164,38 +164,69 @@ Code translate_stmt(char *id, Stmt s) {
     return code;
 }
 
-Code translate_expr(Expr e) {
+Code translate_expr(char *id, Expr e) {
     Code    code;
     Instr   instr;
+    Param   var;
     switch(e->t) {
         case EXPR_ID:
+            // Load id into reg.
+            var = lookup_variable(id, e->e.Uid);
+
+            instr = make_op(OP_LOAD);
+            instr->rd = reg;
+            instr->int_const = var->pos;
+            code = instr_to_code(instr);
+            break;
         case EXPR_CONST: 
+            // Load appropriate const into reg.
             switch (e->r) {
                 case TYPE_INT:
                     instr = make_op(OP_INT_CONST);
-                    instr->rd = reg++;
+                    instr->rd = reg;
                     instr->int_const = e->e.Uconst->val.Uint;
                     break;
                 case TYPE_REAL:
                     instr = make_op(OP_REAL_CONST);
-                    instr->rd = reg++;
+                    instr->rd = reg;
                     instr->real_const = e->e.Uconst->val.Ureal;
                     break;
                 case TYPE_BOOL:
                     instr = make_op(OP_INT_CONST);
-                    instr->rd = reg++;
+                    instr->rd = reg;
                     instr->bool_const = e->e.Uconst->val.Ubool;
                     break;
                 case TYPE_STRING:
                     instr = make_op(OP_STRING_CONST);
-                    instr->rd = reg++;
+                    instr->rd = reg;
                     instr->string_const = checked_strdup(e->e.Uconst->val.Ustr);
                 default:
                     break;
             }
             code = instr_to_code(instr);
         case EXPR_BINOP:
+            code = translate_expr(id, e->e.Ubinop.e1);
+            reg++;
+            code = seq(code, translate_expr(id, e->e.Ubinop.e2));
+
+            switch (e->e.Binop.op) {
+                case BINOP_OR:
+                case BINOP_AND:
+                case BINOP_EQ:
+                case BINOP_NE:
+                case BINOP_LT:
+                case BINOP_LE:
+                case BINOP_GT:
+                case BINOP_GE:
+                case BINOP_ADD:
+                case BINOP_SUB:
+                case BINOP_MUL:
+                case BINOP_DIV:
+                    break;
+            }
+            break;
         case EXPR_UNOP:
+            break;
         case EXPR_FUNC:
             break;
     }

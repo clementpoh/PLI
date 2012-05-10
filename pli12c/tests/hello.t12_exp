@@ -1,10 +1,18 @@
 	call func_main
 	halt
 func_main:
-	push_stack_frame 0
+	push_stack_frame 2
+# variable x is in stack slot 0
+# variable y is in stack slot 1
+# assignment
+	int_const r0, 3
+	store 0, r0
+# assignment
+	load r0, 0
+	store 1, r0
 # write
 	string_const r0, "Hello World\n"
 	call_builtin print_string
 endfunc_main:
-	pop_stack_frame 0
+	pop_stack_frame 2
 	return

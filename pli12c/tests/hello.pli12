@@ -1,7 +1,13 @@
 function main() returns int
 begin
     declare x int;
+    declare y int;
+    declare z int;
     
     x := 3;
+    y := x;
+
+    z := x + 0;
+
 	write "Hello World\n";
 end

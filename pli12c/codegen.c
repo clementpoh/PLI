@@ -24,6 +24,7 @@ Code translate_stmt(char *id, Stmt s);
 
 Code translate_expr(char *id, Expr e);
 Code translate_binop(Expr e);
+Code translate_unop(Expr e);
 
 Code translate_prologue(char *str, Decls ds, int *size);
 Code translate_epilogue(char *str, int size);
@@ -197,14 +198,17 @@ Code translate_binop(Expr e) {
     return instr_to_code(instr);
 }
 
-Code translate_binop(Expr e) {
+Code translate_unop(Expr e) {
     Instr   instr;
     switch (e->e.Uunop.op) {
         case UNOP_NOT:
+            break;
         case UNOP_UMINUS:
+            break;
         case UNOP_INT_TO_REAL:
-
+            break;
     }
+    return instr_to_code(instr);
 }
 
 Code translate_stmts(char *id, Stmts ss) {
@@ -244,7 +248,7 @@ Code translate_prologue(char *str, Decls ds, int *size) {
     // push
     instr = make_op(OP_PUSH_STACK_FRAME);
     instr->int_const = *size;
-    code = seq(code, instr_to_code(instr));
+    code = seq(instr_to_code(instr), code);
 
     return code;
 }

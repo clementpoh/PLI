@@ -11,29 +11,32 @@
 #include    "pli12c.h"
 #include    "symbol.h"
 
-static int  reg = 0;
 static char buffer[128];
+static int label = 0;
 
 Instr make_op_call(const char *str);
 Instr make_op(Opcode op);
 
 Code translate_func(Func f);
 
-Code translate_stmts(char *id, Stmts ss);
-Code translate_stmt(char *id, Stmt s);
+Code translate_stmts(char *id, int r, Stmts ss);
+Code translate_stmt(char *id, int r, Stmt s);
 
-Code translate_expr(char *id, Expr e);
-Code translate_binop(Expr e);
-Code translate_unop(Expr e);
+Code translate_expr(char *id, int r, Expr e);
+Code translate_binop(int r, Expr e);
+Code translate_unop(int r, char *id, Expr e);
 
 Code translate_prologue(char *str, Decls ds, int *size);
 Code translate_epilogue(char *str, int size);
 
-Instr make_arith(Opcode op, Type t);
+Instr make_arith(int r, Opcode op, Type t);
+
+Code make_branch(Opcode op, const char *str, int r);
+Code make_label(const char *str);
 Code make_comment(const char *str);
 
-Code load_const(Const c, int r);
-Code load_from(int slot, int r);
+Code load_const(int r, Const c);
+Code load_from(int r, int slot);
 Code save_to(int slot, int r);
 const char *suff(Type t);
 
@@ -57,18 +60,18 @@ translate_prog(Funcs prog)
 Code
 translate_func(Func f) {
     int     size = 0;
+    int     reg = 0;
     Stmts   ss = f->stmts;
     Code    code = translate_prologue(f->id, f->decls, &size);
 
-    code = seq(code, translate_stmts(f->id, ss));
+    code = seq(code, translate_stmts(f->id, reg, ss));
 
     code = seq(code, translate_epilogue(f->id, size));
 
     return code;
 }
 
-
-Code translate_stmt(char *id, Stmt s) {
+Code translate_stmt(char *id, int r, Stmt s) {
     Code    code;
     Instr   instr;
     Param   var;
@@ -78,8 +81,8 @@ Code translate_stmt(char *id, Stmt s) {
             code = make_comment("assignment");
             // Expression
             var = lookup_variable(id, s->s.Uassign.id);
-            code = seq(code, translate_expr(id, s->s.Uassign.expr));
-            code = seq(code, save_to(var->pos, reg));
+            code = seq(code, translate_expr(id, r, s->s.Uassign.expr));
+            code = seq(code, save_to(var->pos, r));
             break;
         case STMT_READ:
             code = make_comment("read");
@@ -94,12 +97,12 @@ Code translate_stmt(char *id, Stmt s) {
                 case TYPE_ERROR: instr->string_const = "read_error"; break;
             }
             code = seq(code, instr_to_code(instr));
-            code = seq(code, save_to(var->pos, reg));
+            code = seq(code, save_to(var->pos, r));
             break;
         case STMT_WRITE:
             code = make_comment("write");
             // Expression
-            code = seq(code, translate_expr(id, s->s.Uwrite));
+            code = seq(code, translate_expr(id, r, s->s.Uwrite));
             // Call
             instr = make_op(OP_CALL_BUILTIN);
             switch (s->s.Uwrite->r) {
@@ -113,41 +116,80 @@ Code translate_stmt(char *id, Stmt s) {
             break;
         case STMT_IF:
             code = make_comment("if");
+            // Condition
+            code = seq(code, translate_expr(id, r, s->s.Uif.cond));
+            // Branch
+            sprintf(buffer, "label%d", label);
+            code = seq(code, make_branch(OP_BRANCH_ON_FALSE, buffer, r));
+            code = seq(code, translate_stmts(id, r, s->s.Uif.then));
+            // Label
+            sprintf(buffer, "label%d", label++);
+            code = seq(code, make_label(buffer));
             break;
         case STMT_ELSE:
             code = make_comment("else");
+            // Condition
+            code = seq(code, translate_expr(id, r, s->s.Uelse.cond));
+            // Branch
+            sprintf(buffer, "label%d", label);
+            code = seq(code, make_branch(OP_BRANCH_ON_FALSE, buffer, r));
+            code = seq(code, translate_stmts(id, r, s->s.Uelse.then));
+            // Label
+            sprintf(buffer, "label%d", label++);
+            code = seq(code, make_label(buffer));
+            // Else
+            code = seq(code, translate_stmts(id, r, s->s.Uelse.other));
             break;
         case STMT_WHILE:
             code = make_comment("while");
+            // Label
+            sprintf(buffer, "label%d", label++);
+            code = seq(code, make_label(buffer));
+            // Condition
+            code = seq(code, translate_expr(id, r, s->s.Uwhile.cond));
+            // Branch
+            sprintf(buffer, "label%d", label--);
+            code = seq(code, make_branch(OP_BRANCH_ON_FALSE, buffer, r));
+            // Loop body
+            code = seq(code, translate_stmts(id, r, s->s.Uwhile.rep));
+            // Branch back
+            sprintf(buffer, "label%d", label++);
+            code = seq(code, make_branch(OP_BRANCH_UNCOND, buffer, r));
+            // Label
+            sprintf(buffer, "label%d", label++);
+            code = seq(code, make_label(buffer));
             break;
         case STMT_RETURN:
             code = make_comment("return");
+            code = seq(code, translate_expr(id, 0, s->s.Ureturn));
+            sprintf(buffer, "endfunc_%s", id);
+            code = seq(code, make_branch(OP_BRANCH_UNCOND, buffer, 0));
             break;
     }
 
     return code;
 }
 
-Code translate_expr(char *id, Expr e) {
+Code translate_expr(char *id, int r, Expr e) {
     Code    code;
     Param   var;
     switch(e->t) {
         case EXPR_ID:
             // Load id into reg.
             var = lookup_variable(id, e->e.Uid);
-            code = load_from(var->pos, reg);
+            code = load_from(r, var->pos);
             break;
         case EXPR_CONST: 
             // Load appropriate const into reg.
-            code = load_const(e->e.Uconst, reg);
+            code = load_const(r, e->e.Uconst);
             break;
         case EXPR_BINOP:
-            code = translate_expr(id, e->e.Ubinop.e1);
-            reg++;
-            code = seq(code, translate_expr(id, e->e.Ubinop.e2));
-            code = seq(code, translate_binop(e));
+            code = translate_expr(id, r, e->e.Ubinop.e1);
+            code = seq(code, translate_expr(id, r + 1, e->e.Ubinop.e2));
+            code = seq(code, translate_binop(r, e));
             break;
         case EXPR_UNOP:
+            code = translate_unop(r, id, e);
             break;
         case EXPR_FUNC:
             break;
@@ -155,66 +197,74 @@ Code translate_expr(char *id, Expr e) {
     return code;
 }
 
-Code translate_binop(Expr e) {
+Code translate_binop(int r, Expr e) {
     Instr   instr;
+    Type t = e->e.Ubinop.e1->t;
     switch (e->e.Ubinop.op) {
-        case BINOP_OR:
-            instr = make_arith(OP_OR, e->r);
-            break;
-        case BINOP_AND:
-            instr = make_arith(OP_AND, e->r);
-            break;
-        case BINOP_EQ:
-            instr = make_arith(OP_CMP_EQ, e->e.Ubinop.e1->t);
-            break;
-        case BINOP_NE:
-            instr = make_arith(OP_CMP_NE, e->e.Ubinop.e1->t);
-            break;
-        case BINOP_LT:
-            instr = make_arith(OP_CMP_LT, e->e.Ubinop.e1->t);
-            break;
-        case BINOP_LE:
-            instr = make_arith(OP_CMP_LE, e->e.Ubinop.e1->t);
-            break;
-        case BINOP_GT:
-            instr = make_arith(OP_CMP_GT, e->e.Ubinop.e1->t);
-            break;
-        case BINOP_GE:
-            instr = make_arith(OP_CMP_GE, e->e.Ubinop.e1->t);
-            break;
-        case BINOP_ADD:
-            instr = make_arith(OP_ADD, e->r);
-            break;
-        case BINOP_SUB:
-            instr = make_arith(OP_SUB, e->r);
-            break;
-        case BINOP_MUL:
-            instr = make_arith(OP_MUL, e->r);
-            break;
-        case BINOP_DIV:
-            instr = make_arith(OP_DIV, e->r);
-            break;
+        case BINOP_OR: instr = make_arith(r, OP_OR, e->r); break;
+        case BINOP_AND: instr = make_arith(r, OP_AND, e->r); break;
+        case BINOP_EQ: instr = make_arith(r, OP_CMP_EQ, t); break;
+        case BINOP_NE: instr = make_arith(r, OP_CMP_NE, t); break;
+        case BINOP_LT: instr = make_arith(r, OP_CMP_LT, t); break;
+        case BINOP_LE: instr = make_arith(r, OP_CMP_LE, t); break;
+        case BINOP_GT: instr = make_arith(r, OP_CMP_GT, t); break;
+        case BINOP_GE: instr = make_arith(r, OP_CMP_GE, t); break;
+        case BINOP_ADD: instr = make_arith(r, OP_ADD, t); break;
+        case BINOP_SUB: instr = make_arith(r, OP_SUB, t); break;
+        case BINOP_MUL: instr = make_arith(r, OP_MUL, t); break;
+        case BINOP_DIV: instr = make_arith(r, OP_DIV, t); break;
     }
     return instr_to_code(instr);
 }
 
-Code translate_unop(Expr e) {
+Code translate_unop(int r, char *id, Expr e) {
+    Code    code;
     Instr   instr;
     switch (e->e.Uunop.op) {
         case UNOP_NOT:
-            break;
-        case UNOP_UMINUS:
+            code = translate_expr(id, r, e->e.Uunop.e); 
+            instr = make_arith(r, OP_NOT, e->r);
+            code = seq(code, instr_to_code(instr));
             break;
         case UNOP_INT_TO_REAL:
+            code = translate_expr(id, r, e->e.Uunop.e); 
+            instr = make_arith(r, OP_INT_TO_REAL, e->r);
+            code = seq(code, instr_to_code(instr));
+            break;
+        case UNOP_UMINUS:
+            code = translate_expr(id, r + 1, e->e.Uunop.e); 
+            switch (e->r) {
+                case TYPE_INT:
+                    instr = make_op(OP_INT_CONST);
+                    instr->rd = r;
+                    instr->int_const = 0;
+
+                    code = seq(code, instr_to_code(instr));
+                    instr = make_arith(r, OP_SUB, e->r);
+                    code = seq(code, instr_to_code(instr));
+                    break;
+                case TYPE_REAL:
+                    instr = make_op(OP_REAL_CONST);
+                    instr->rd = r;
+                    instr->real_const = 0;
+
+                    code = seq(code, instr_to_code(instr));
+                    instr = make_arith(r, OP_SUB, e->r);
+                    code = seq(code, instr_to_code(instr));
+                    break;
+                default:
+                    code = make_comment("internal error: uminus");
+                    break;
+            }
             break;
     }
-    return instr_to_code(instr);
+    return code;
 }
 
-Code translate_stmts(char *id, Stmts ss) {
-    Code code;
+Code translate_stmts(char *id, int reg, Stmts ss) {
+    Code code = NULL;
     while (ss) {
-        code = seq(code, translate_stmt(id, ss->s_first));
+        code = seq(code, translate_stmt(id, reg, ss->s_first));
         ss = ss->s_rest;
     }
 
@@ -248,11 +298,10 @@ Code translate_prologue(char *str, Decls ds, int *size) {
     // push
     instr = make_op(OP_PUSH_STACK_FRAME);
     instr->int_const = *size;
-    code = seq(instr_to_code(instr), code);
+    code = seq(code, instr_to_code(instr));
 
     return code;
 }
-
 
 Code translate_epilogue(char *str, int size) {
     Code    code;
@@ -283,7 +332,6 @@ Instr make_op_call(const char *str) {
     
     new->string_const = checked_strdup(buffer);
     return new;
-
 }
 
 Instr make_op(Opcode op) {
@@ -292,7 +340,7 @@ Instr make_op(Opcode op) {
     return new;
 }
 
-Code load_from(int slot, int r) {
+Code load_from(int r, int slot) {
     Instr instr = make_op(OP_LOAD);
     instr->rd = r;
     instr->int_const = slot;
@@ -300,7 +348,7 @@ Code load_from(int slot, int r) {
     return instr_to_code(instr);
 }
 
-Code load_const(Const c, int r) {
+Code load_const(int r, Const c) {
     Instr instr;
     switch (c->type) {
         case TYPE_INT:
@@ -314,7 +362,7 @@ Code load_const(Const c, int r) {
             instr->real_const = c->val.Ureal;
             break;
         case TYPE_BOOL:
-            instr = make_op(OP_INT_CONST);
+            instr = make_op(OP_BOOL_CONST);
             instr->rd = r;
             instr->bool_const = c->val.Ubool;
             break;
@@ -335,36 +383,44 @@ Code save_to(int slot, int r) {
     return instr_to_code(instr);
 }
 
+Code make_branch(Opcode op, const char *str, int r) {
+    Instr instr = make_op(op);
+    instr->string_const = checked_strdup(str);
+    instr->rs1 = r;
+    return instr_to_code(instr);
+}
+
 Code make_comment(const char *str) {
     Instr instr = make_op(OP_COMMENT);
     instr->string_const = str;
     return instr_to_code(instr);
 }
 
-Instr make_arith(Opcode op, Type t) {
+Code make_label(const char *str) {
+    Instr instr = make_op(OP_LABEL);
+    instr->string_const = checked_strdup(str);
+    return instr_to_code(instr);
+}
+
+Instr make_arith(int r, Opcode op, Type t) {
     Instr instr;
 
     instr = make_op(op);
     instr->suffix = suff(t);
-    instr->rs2 = reg--;
-    instr->rs1 = reg;
-    instr->rd = reg;
+    instr->rs2 = r + 1;
+    instr->rs1 = r;
+    instr->rd = r;
 
     return instr;
 }
 
 const char *suff(Type t) {
     switch (t) {
-        case TYPE_INT:
-            return "int";
-        case TYPE_REAL:
-            return "real";
-        case TYPE_BOOL:
-            return "bool";
-        case TYPE_STRING:
-            return "string";
-        case TYPE_ERROR:
-            return "error";
+        case TYPE_INT: return "int";
+        case TYPE_REAL: return "real";
+        case TYPE_BOOL: return "bool";
+        case TYPE_STRING: return "string";
+        case TYPE_ERROR: return "error";
     }
     return "error";
 }

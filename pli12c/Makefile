@@ -51,7 +51,7 @@ clobber: realclean
 test:	pli12c clean
 	cd tests; ./Runtests -e
 
-tests: pli12c
+tests: pli12c clean
 	./pli12c tests/hello.pli12 out.t12
 
 $(OBJ):		$(HDR)

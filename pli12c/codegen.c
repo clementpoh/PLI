@@ -75,6 +75,7 @@ Code translate_stmt(char *id, int r, Stmt s) {
     Code    code;
     Instr   instr;
     Param   var;
+    int     orig = label;
 
     switch (s->t) {
         case STMT_ASSIGN:
@@ -115,56 +116,59 @@ Code translate_stmt(char *id, int r, Stmt s) {
             code = seq(code, instr_to_code(instr));
             break;
         case STMT_IF:
+            label++;
             code = make_comment("if");
             // condition
             code = seq(code, translate_expr(id, r, s->s.Uif.cond));
             // branch
-            sprintf(buffer, "label%d", label);
+            sprintf(buffer, "label%d", orig);
             code = seq(code, make_branch(OP_BRANCH_ON_FALSE, buffer, r));
             // body
             c2 = seq(code, translate_stmts(id, r, s->s.Uif.then));
             // label
-            sprintf(buffer, "label%d", label++);
+            sprintf(buffer, "label%d", orig++);
             code = seq(code, make_label(buffer));
             break;
         case STMT_ELSE:
+            label += 2;
             code = make_comment("else");
             // condition
             code = seq(code, translate_expr(id, r, s->s.Uelse.cond));
             // branch
-            sprintf(buffer, "label%d", label++);
+            sprintf(buffer, "label%d", orig++);
             code = seq(code, make_branch(OP_BRANCH_ON_FALSE, buffer, r));
             // then
             c2 = seq(code, translate_stmts(id, r, s->s.Uelse.then));
             // jump to after the else
-            sprintf(buffer, "label%d", label--);
+            sprintf(buffer, "label%d", orig--);
             code = seq(code, make_branch(OP_BRANCH_UNCOND, buffer, 0));
             // label
-            sprintf(buffer, "label%d", label++);
+            sprintf(buffer, "label%d", orig++);
             code = seq(code, make_label(buffer));
             // else
             c2 = seq(code, translate_stmts(id, r, s->s.Uelse.other));
             // label after the else
-            sprintf(buffer, "label%d", label++);
+            sprintf(buffer, "label%d", orig);
             code = seq(code, make_label(buffer));
             break;
         case STMT_WHILE:
+            label += 2;
             code = make_comment("while");
             // label
-            sprintf(buffer, "label%d", label++);
+            sprintf(buffer, "label%d", orig++);
             code = seq(code, make_label(buffer));
             // condition
             code = seq(code, translate_expr(id, r, s->s.Uwhile.cond));
             // branch
-            sprintf(buffer, "label%d", label--);
+            sprintf(buffer, "label%d", orig--);
             c2 = seq(code, make_branch(OP_BRANCH_ON_FALSE, buffer, r));
             // loop body
             code = seq(code, translate_stmts(id, r, s->s.Uwhile.rep));
             // branch back
-            sprintf(buffer, "label%d", label++);
+            sprintf(buffer, "label%d", orig++);
             code = seq(code, make_branch(OP_BRANCH_UNCOND, buffer, 0));
             // label
-            sprintf(buffer, "label%d", label++);
+            sprintf(buffer, "label%d", orig);
             code = seq(code, make_label(buffer));
             break;
         case STMT_RETURN:

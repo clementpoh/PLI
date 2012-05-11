@@ -26,7 +26,7 @@ Code translate_expr(char *id, int r, Expr e);
 Code translate_binop(int r, Expr e);
 Code translate_unop(int r, char *id, Expr e);
 
-Code translate_prologue(char *str, Decls ds, int *size);
+Code translate_prologue(char *id, Params ps, Decls ds, int *size);
 Code translate_epilogue(char *str, int size);
 
 Instr make_arith(int r, Opcode op, Type t);
@@ -62,7 +62,7 @@ translate_func(Func f) {
     int     size = 0;
     int     reg = 0;
     Stmts   ss = f->stmts;
-    Code    code = translate_prologue(f->id, f->decls, &size);
+    Code    code = translate_prologue(f->id, f->args, f->decls, &size);
 
     code = seq(code, translate_stmts(f->id, reg, ss));
 
@@ -271,26 +271,46 @@ Code translate_stmts(char *id, int reg, Stmts ss) {
     return code;
 }
 
-Code translate_prologue(char *str, Decls ds, int *size) {
-    Code    code;
+Code translate_prologue(char *id, Params ps, Decls ds, int *size) {
+    Code    c1 = NULL;
+    Code    c2 = NULL;
     Decl    d;
+    Param   p;
+    Param   var;
     Instr   instr;
 
     // func label
     instr = make_op(OP_LABEL);
-    sprintf(buffer, "func_%s", str);
+    sprintf(buffer, "func_%s", id);
     instr->string_const = checked_strdup(buffer);
 
-    code = instr_to_code(instr);
+    c1 = instr_to_code(instr);
 
+    // Args
+    while(ps) {
+        p = ps->p_first;
+
+        var = lookup_variable(id, p->id);
+        var->pos = *size;
+        
+        sprintf(buffer, "argument %s is in stack slot %d", p->id, *size);
+        c2 = seq(c2, make_comment(checked_strdup(buffer)));
+
+        c2 = seq(c2, save_to(*size, *size));
+
+        (*size)++;
+        ps = ps->p_rest;
+    }
+
+    // Decs
     while(ds) {
         d = ds->d_first;
 
-        // stack size
-        instr = make_op(OP_COMMENT);
-        sprintf(buffer, "variable is %s in stack slot %d", d->id, (*size)++);
-        instr->string_const = checked_strdup(buffer);
-        code = seq(code, instr_to_code(instr));
+        var = lookup_variable(id, d->id);
+        var->pos = *size;
+
+        sprintf(buffer, "variable %s is in stack slot %d", d->id, (*size)++);
+        c2 = seq(c2, make_comment(checked_strdup(buffer)));
 
         ds = ds->d_rest;
     }
@@ -298,9 +318,9 @@ Code translate_prologue(char *str, Decls ds, int *size) {
     // push
     instr = make_op(OP_PUSH_STACK_FRAME);
     instr->int_const = *size;
-    code = seq(code, instr_to_code(instr));
+    c1 = seq(c1, instr_to_code(instr));
 
-    return code;
+    return seq(c1, c2);;
 }
 
 Code translate_epilogue(char *str, int size) {

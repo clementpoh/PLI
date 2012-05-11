@@ -24,7 +24,7 @@ static Params   params_to_vars(Params ps, Params new);
 static Param    clone_param(Param p);
 
 static Params   decls_to_vars(Decls ds, Params vs);
-static Param    decl_to_var(Decl d, int pos);
+static Param    decl_to_var(Decl d);
 
 static Fsym     make_builtin(const char *id, Types args, Type t);
 static Fsyms    ins_sym(Fsym s, Fsyms ss);
@@ -184,14 +184,13 @@ static Param clone_param(Param p) {
 }
 
 static Params   decls_to_vars(Decls ds, Params vs) {
-    int pos = 0;
     Param v;
     Decl d;
 
     while(ds) {
         d = ds->d_first;
         if(!lookup_var(d->id, vs)) {
-            v = decl_to_var(d, pos++);
+            v = decl_to_var(d);
             vs = ins_param(v, vs);
             if(d->val && d->val->type != d->type) {
                 sprintf(err_buff,
@@ -219,12 +218,11 @@ static Params   decls_to_vars(Decls ds, Params vs) {
     return vs;
 }
 
-static Param decl_to_var(Decl d, int pos) {
+static Param decl_to_var(Decl d) {
     Param new = checked_malloc(sizeof(*new));
 
     new->id = checked_strdup(d->id);
     new->type = d->type;
-    new->pos = pos;
 
     new->lineno = d->lineno;
     

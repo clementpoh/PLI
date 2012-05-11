@@ -12,7 +12,7 @@
 
 char err_buff[BUFFER_LEN];
 
-static Fsyms s_table = NULL;
+Fsyms s_table = NULL;
 
 static Param    lookup_var(char *id, Params vs);
 

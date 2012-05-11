@@ -124,7 +124,7 @@ Code translate_stmt(char *id, int r, Stmt s) {
             sprintf(buffer, "label%d", orig);
             code = seq(code, make_branch(OP_BRANCH_ON_FALSE, buffer, r));
             // body
-            c2 = seq(code, translate_stmts(id, r, s->s.Uif.then));
+            code = seq(code, translate_stmts(id, r, s->s.Uif.then));
             // label
             sprintf(buffer, "label%d", orig++);
             code = seq(code, make_label(buffer));
@@ -138,7 +138,7 @@ Code translate_stmt(char *id, int r, Stmt s) {
             sprintf(buffer, "label%d", orig++);
             code = seq(code, make_branch(OP_BRANCH_ON_FALSE, buffer, r));
             // then
-            c2 = seq(code, translate_stmts(id, r, s->s.Uelse.then));
+            code = seq(code, translate_stmts(id, r, s->s.Uelse.then));
             // jump to after the else
             sprintf(buffer, "label%d", orig--);
             code = seq(code, make_branch(OP_BRANCH_UNCOND, buffer, 0));
@@ -146,7 +146,7 @@ Code translate_stmt(char *id, int r, Stmt s) {
             sprintf(buffer, "label%d", orig++);
             code = seq(code, make_label(buffer));
             // else
-            c2 = seq(code, translate_stmts(id, r, s->s.Uelse.other));
+            code = seq(code, translate_stmts(id, r, s->s.Uelse.other));
             // label after the else
             sprintf(buffer, "label%d", orig);
             code = seq(code, make_label(buffer));
@@ -161,7 +161,7 @@ Code translate_stmt(char *id, int r, Stmt s) {
             code = seq(code, translate_expr(id, r, s->s.Uwhile.cond));
             // branch
             sprintf(buffer, "label%d", orig--);
-            c2 = seq(code, make_branch(OP_BRANCH_ON_FALSE, buffer, r));
+            code = seq(code, make_branch(OP_BRANCH_ON_FALSE, buffer, r));
             // loop body
             code = seq(code, translate_stmts(id, r, s->s.Uwhile.rep));
             // branch back

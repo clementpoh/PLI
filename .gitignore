@@ -5,10 +5,12 @@
 *.run_out*
 *.exe
 *.o
+*.t12
 
 PERF
 tags
 out
+Makefile
 
 .gdb_history
 

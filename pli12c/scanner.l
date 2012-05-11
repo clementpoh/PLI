@@ -143,7 +143,7 @@ nonl    [^\n\f]
                 return REAL_CONST;
             }
 
-\"(\\.|[^\\"])*\"   {
+"\""([^\\\"]|\\.)*"\""	{
                 pli12yylval.Ustr = checked_strdup(yytext);
                 return STRING_CONST;
             }

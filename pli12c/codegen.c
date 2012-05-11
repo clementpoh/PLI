@@ -116,46 +116,54 @@ Code translate_stmt(char *id, int r, Stmt s) {
             break;
         case STMT_IF:
             code = make_comment("if");
-            // Condition
+            // condition
             code = seq(code, translate_expr(id, r, s->s.Uif.cond));
-            // Branch
+            // branch
             sprintf(buffer, "label%d", label);
             code = seq(code, make_branch(OP_BRANCH_ON_FALSE, buffer, r));
-            code = seq(code, translate_stmts(id, r, s->s.Uif.then));
-            // Label
+            // body
+            c2 = seq(code, translate_stmts(id, r, s->s.Uif.then));
+            // label
             sprintf(buffer, "label%d", label++);
             code = seq(code, make_label(buffer));
             break;
         case STMT_ELSE:
             code = make_comment("else");
-            // Condition
+            // condition
             code = seq(code, translate_expr(id, r, s->s.Uelse.cond));
-            // Branch
-            sprintf(buffer, "label%d", label);
+            // branch
+            sprintf(buffer, "label%d", label++);
             code = seq(code, make_branch(OP_BRANCH_ON_FALSE, buffer, r));
-            code = seq(code, translate_stmts(id, r, s->s.Uelse.then));
-            // Label
+            // then
+            c2 = seq(code, translate_stmts(id, r, s->s.Uelse.then));
+            // jump to after the else
+            sprintf(buffer, "label%d", label--);
+            code = seq(code, make_branch(OP_BRANCH_UNCOND, buffer, 0));
+            // label
             sprintf(buffer, "label%d", label++);
             code = seq(code, make_label(buffer));
-            // Else
-            code = seq(code, translate_stmts(id, r, s->s.Uelse.other));
+            // else
+            c2 = seq(code, translate_stmts(id, r, s->s.Uelse.other));
+            // label after the else
+            sprintf(buffer, "label%d", label++);
+            code = seq(code, make_label(buffer));
             break;
         case STMT_WHILE:
             code = make_comment("while");
-            // Label
+            // label
             sprintf(buffer, "label%d", label++);
             code = seq(code, make_label(buffer));
-            // Condition
+            // condition
             code = seq(code, translate_expr(id, r, s->s.Uwhile.cond));
-            // Branch
+            // branch
             sprintf(buffer, "label%d", label--);
-            code = seq(code, make_branch(OP_BRANCH_ON_FALSE, buffer, r));
-            // Loop body
+            c2 = seq(code, make_branch(OP_BRANCH_ON_FALSE, buffer, r));
+            // loop body
             code = seq(code, translate_stmts(id, r, s->s.Uwhile.rep));
-            // Branch back
+            // branch back
             sprintf(buffer, "label%d", label++);
-            code = seq(code, make_branch(OP_BRANCH_UNCOND, buffer, r));
-            // Label
+            code = seq(code, make_branch(OP_BRANCH_UNCOND, buffer, 0));
+            // label
             sprintf(buffer, "label%d", label++);
             code = seq(code, make_label(buffer));
             break;
@@ -199,7 +207,7 @@ Code translate_expr(char *id, int r, Expr e) {
 
 Code translate_binop(int r, Expr e) {
     Instr   instr;
-    Type t = e->e.Ubinop.e1->t;
+    Type t = e->e.Ubinop.e1->r;
     switch (e->e.Ubinop.op) {
         case BINOP_OR: instr = make_arith(r, OP_OR, e->r); break;
         case BINOP_AND: instr = make_arith(r, OP_AND, e->r); break;

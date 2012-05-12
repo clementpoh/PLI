@@ -1,34 +1,13 @@
 function cow(n: int) returns int
 begin
-    declare y int initialize to 3;
-
-    y := y + n;
-
-    while (n > 0) do 
-        read n;
-    endwhile
-
-    if (n > 10) then
-        write n;
-    else
-        if true then
-            write "cow";
-        endif 
-    endif
-
-    return y;
+    return n;
 end
 
 function main() returns int
 begin
-    declare x int;
-    declare y int;
     declare z int;
     
-    x := 3;
-    y := x;
+    z := 1 + cow(1) + cow(cow(2));
 
-    z := x + 0;
-
-	write "Hello World\n";
+	write z;
 end

@@ -159,7 +159,6 @@ Expr    make_const(Const c) {
 Expr    make_binop(BinOp binop, Expr e1, Expr e2) {
     Expr new = checked_malloc(sizeof(*new));
 
-    /* TODO: Work out the type of the returned expression. */
     new->t = EXPR_BINOP;
     new->e.Ubinop.op = binop;
     new->e.Ubinop.e1 = e1;
@@ -186,7 +185,6 @@ Expr    make_unop(UnOp unop, Expr e) {
 Expr    make_call(char *id, Exprs args) {
     Expr new = checked_malloc(sizeof(*new));
 
-    /* TODO: Work out the type of the returned expression. */
     new->t = EXPR_FUNC;
     new->e.Ucall.id = id;
     new->e.Ucall.args = args;

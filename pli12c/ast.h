@@ -3,7 +3,7 @@
 */
 /*
 ** This module should define an abstract syntax tree for PLI12 programs.
-** I want Haskell's discriminating unionised types. C sucks.
+** I want Haskell's algebraic data types. C sucks.
 */
 
 #ifndef AST_H

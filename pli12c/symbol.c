@@ -9,8 +9,13 @@
 #include "symbol.h"
 
 #define BUFFER_LEN 1024
+static char err_buff[BUFFER_LEN];
 
-char err_buff[BUFFER_LEN];
+typedef struct s_syms  *Fsyms;
+struct s_syms {
+	Fsym     first;
+	Fsyms    rest;
+};
 
 Fsyms s_table = NULL;
 

@@ -11,9 +11,7 @@
 #include "std.h"
 #include "ast.h"
 
-typedef struct s_syms  *Fsyms;
 typedef struct s_sym   *Fsym;
-
 struct s_sym {
 	char	*id;
 	Type	ret;
@@ -25,18 +23,9 @@ struct s_sym {
 	Params	vars;
 };
 
-struct s_syms {
-	Fsym     first;
-	Fsyms    rest;
-};
-
 /*
 ** These look after the list of known functions.
 */
-
-extern  Fsyms   s_table;
-extern  char    err_buff[];
-
 extern	void	init_with_builtin_functions(void);
 extern	bool	add_user_function(Func f);
 
@@ -52,7 +41,5 @@ extern  Type    get_var_type(int lineno, char *func, char *var);
 ** These look after the list of known variables in a function,
 ** including parameters.
 */
-
-extern	int	    num_variables(void);
 
 #endif	/* SYMBOL_H */

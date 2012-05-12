@@ -12,6 +12,9 @@
 #include    "analyze.h"
 #include    "symbol.h"
 
+#define BUFFER_LEN 1024
+static char err_buff[BUFFER_LEN];
+
 static void verify_types(Funcs fs);
 
 static void verify_statements(char *id, Stmts ss);

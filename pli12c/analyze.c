@@ -8,7 +8,6 @@
 #include    <stdio.h>
 
 #include    "pli12c.h"
-#include    "ast.h"
 #include    "analyze.h"
 #include    "symbol.h"
 

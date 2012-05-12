@@ -3,7 +3,7 @@ begin
     return n;
 end
 
-function main() returns int
+function jump() returns int
 begin
     declare z int;
     

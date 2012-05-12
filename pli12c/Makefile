@@ -49,11 +49,11 @@ clobber: realclean
 
 .PHONY: test
 test:	pli12c clean
-	cd tests; ./Runtests -e
+	cd tests; ./Runtests -p -e
 
 tests: pli12c clean
-	./good_pli12c tests/hello.pli12 tests/hello.t12_exp
-	./pli12c tests/hello.pli12 out.t12
+	# ./good_pli12c tests/hello.pli12 tests/hello.t12_exp
+	./pli12c tests/ffib.pli12 out.t12
 
 $(OBJ):		$(HDR)
 

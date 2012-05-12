@@ -140,7 +140,10 @@ static void verify_statement(char *id, Stmt s) {
         case STMT_RETURN:
             t1 = verify_expression(id, s->s.Ureturn);
             t2 = get_func_type(id);
-            if (t1 != t2) {
+            if (t1 == TYPE_INT && t2 == TYPE_REAL) {
+                pli12yylinenum = s->lineno;
+                s->s.Ureturn = make_unop(UNOP_INT_TO_REAL, s->s.Ureturn);
+            } else if (t1 && t1 != t2) {
                 sprintf(err_buff,
                         "type mismatch in return statement; "
                         "actual %s, expected %s" 

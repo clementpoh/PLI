@@ -27,9 +27,9 @@ Code translate_stmts(char *id, int r, Stmts ss, int base);
 Code translate_stmt(char *id, int r, Stmt s, int base);
 
 Code translate_expr(char *id, int r, Expr e, int base);
-Code translate_call(int r, char *id, Expr e, int base);
+Code translate_call(char *id, int r, Expr e, int base);
+Code translate_unop(char *id, int r, Expr e, int base);
 Code translate_binop(int r, Expr e);
-Code translate_unop(int r, char *id, Expr e, int base);
 
 Code args_to_stack(char *id, Params ps, int *base);
 Code decls_to_stack(char *id, Decls ds, int *base);
@@ -196,16 +196,16 @@ Code translate_expr(char *id, int r, Expr e, int base) {
             code = seq(code, translate_binop(r, e));
             break;
         case EXPR_UNOP:
-            code = translate_unop(r, id, e, base);
+            code = translate_unop(id, r, e, base);
             break;
         case EXPR_FUNC:
-            code = translate_call(r, id, e, base);
+            code = translate_call(id, r, e, base);
             break;
     }
     return code;
 }
 
-Code translate_call(int r, char *id, Expr e, int base) {
+Code translate_call(char *id, int r, Expr e, int base) {
     Exprs   args = e->e.Ucall.args;
     Code    code;
     int     i;
@@ -258,7 +258,7 @@ Code translate_binop(int r, Expr e) {
     return instr_to_code(instr);
 }
 
-Code translate_unop(int r, char *id, Expr e, int base) {
+Code translate_unop(char *id, int r, Expr e, int base) {
     Code    code;
     Instr   instr;
     switch (e->e.Uunop.op) {

@@ -128,7 +128,7 @@ Code translate_stmt(char *id, int r, Stmt s, int base) {
             break;
         case STMT_ELSE:
             label += 2;
-            code = make_comment("else");
+            code = make_comment("if");
             // condition
             code = seq(code, translate_expr(id, r, s->s.Uelse.cond, base));
             // branch
@@ -398,7 +398,6 @@ Code make_op_call(const char *str) {
         case BUILTIN: return make_builtin(str);
         case USER_DEFINED: return make_usr_call(str);
     }
-
 }
 
 Code make_usr_call(const char *str) {

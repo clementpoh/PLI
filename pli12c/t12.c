@@ -116,7 +116,7 @@ write_instr(FILE *fp, Instr instr)
             break;
 
         case OP_STRING_CONST:
-            fprintf(fp, "\tstring_const r%d, \"%s\"\n",
+            fprintf(fp, "\tstring_const r%d, %s\n",
                 instr->rd, instr->string_const);
             break;
 

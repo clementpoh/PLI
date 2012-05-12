@@ -23,12 +23,12 @@ Instr make_op(Opcode op);
 
 Code translate_func(Func f);
 
-Code translate_stmts(char *id, int r, Stmts ss, int base);
-Code translate_stmt(char *id, int r, Stmt s, int base);
+Code translate_stmts(char *id, int r, int base, Stmts ss);
+Code translate_stmt(char *id, int r, int base, Stmt s);
 
-Code translate_expr(char *id, int r, Expr e, int base);
-Code translate_call(char *id, int r, Expr e, int base);
-Code translate_unop(char *id, int r, Expr e, int base);
+Code translate_expr(char *id, int r, int base, Expr e);
+Code translate_call(char *id, int r, int base, Expr e);
+Code translate_unop(char *id, int r, int base, Expr e);
 Code translate_binop(int r, Expr e);
 
 Code args_to_stack(char *id, Params ps, int *base);
@@ -76,7 +76,7 @@ translate_func(Func f) {
     code = seq(code, decls_to_stack(f->id, f->decls, &base));
 
     stack = base;
-    code = seq(code, translate_stmts(f->id, reg, f->stmts, base));
+    code = seq(code, translate_stmts(f->id, reg, base, f->stmts));
 
     code = seq(translate_prologue(f), code);
     code = seq(code, translate_epilogue(f->id));
@@ -84,7 +84,7 @@ translate_func(Func f) {
     return code;
 }
 
-Code translate_stmt(char *id, int r, Stmt s, int base) {
+Code translate_stmt(char *id, int r, int base, Stmt s) {
     Code    code;
     Param   var;
     int     orig = label;
@@ -93,7 +93,7 @@ Code translate_stmt(char *id, int r, Stmt s, int base) {
         case STMT_ASSIGN:
             code = make_comment("assignment");
             var = lookup_variable(id, s->s.Uassign.id);
-            code = seq(code, translate_expr(id, r, s->s.Uassign.expr, base));
+            code = seq(code, translate_expr(id, r, base, s->s.Uassign.expr));
             code = seq(code, save_to(var->pos, r));
             break;
         case STMT_READ:
@@ -107,7 +107,7 @@ Code translate_stmt(char *id, int r, Stmt s, int base) {
         case STMT_WRITE:
             code = make_comment("write");
             // Expression
-            code = seq(code, translate_expr(id, r, s->s.Uwrite, base));
+            code = seq(code, translate_expr(id, r, base, s->s.Uwrite));
             // Call
             sprintf(buffer, "print_%s", suff(s->s.Uwrite->r));
             code = seq(code, make_builtin(buffer));
@@ -116,12 +116,12 @@ Code translate_stmt(char *id, int r, Stmt s, int base) {
             label++;
             code = make_comment("if");
             // condition
-            code = seq(code, translate_expr(id, r, s->s.Uif.cond, base));
+            code = seq(code, translate_expr(id, r, base, s->s.Uif.cond));
             // branch
             sprintf(buffer, "label%d", orig);
             code = seq(code, make_branch(OP_BRANCH_ON_FALSE, buffer, r));
             // body
-            code = seq(code, translate_stmts(id, r, s->s.Uif.then, base));
+            code = seq(code, translate_stmts(id, r, base, s->s.Uif.then));
             // label
             sprintf(buffer, "label%d", orig++);
             code = seq(code, make_label(buffer));
@@ -130,12 +130,12 @@ Code translate_stmt(char *id, int r, Stmt s, int base) {
             label += 2;
             code = make_comment("if");
             // condition
-            code = seq(code, translate_expr(id, r, s->s.Uelse.cond, base));
+            code = seq(code, translate_expr(id, r, base, s->s.Uelse.cond));
             // branch
             sprintf(buffer, "label%d", orig++);
             code = seq(code, make_branch(OP_BRANCH_ON_FALSE, buffer, r));
             // then
-            code = seq(code, translate_stmts(id, r, s->s.Uelse.then, base));
+            code = seq(code, translate_stmts(id, r, base, s->s.Uelse.then));
             // jump to after the else
             sprintf(buffer, "label%d", orig--);
             code = seq(code, make_branch(OP_BRANCH_UNCOND, buffer, 0));
@@ -143,7 +143,7 @@ Code translate_stmt(char *id, int r, Stmt s, int base) {
             sprintf(buffer, "label%d", orig++);
             code = seq(code, make_label(buffer));
             // else
-            code = seq(code, translate_stmts(id, r, s->s.Uelse.other, base));
+            code = seq(code, translate_stmts(id, r, base, s->s.Uelse.other));
             // label after the else
             sprintf(buffer, "label%d", orig);
             code = seq(code, make_label(buffer));
@@ -155,12 +155,12 @@ Code translate_stmt(char *id, int r, Stmt s, int base) {
             sprintf(buffer, "label%d", orig++);
             code = seq(code, make_label(buffer));
             // condition
-            code = seq(code, translate_expr(id, r, s->s.Uwhile.cond, base));
+            code = seq(code, translate_expr(id, r, base, s->s.Uwhile.cond));
             // branch
             sprintf(buffer, "label%d", orig--);
             code = seq(code, make_branch(OP_BRANCH_ON_FALSE, buffer, r));
             // loop body
-            code = seq(code, translate_stmts(id, r, s->s.Uwhile.rep, base));
+            code = seq(code, translate_stmts(id, r, base, s->s.Uwhile.rep));
             // branch back
             sprintf(buffer, "label%d", orig++);
             code = seq(code, make_branch(OP_BRANCH_UNCOND, buffer, 0));
@@ -170,7 +170,7 @@ Code translate_stmt(char *id, int r, Stmt s, int base) {
             break;
         case STMT_RETURN:
             code = make_comment("return");
-            code = seq(code, translate_expr(id, 0, s->s.Ureturn, base));
+            code = seq(code, translate_expr(id, 0, base, s->s.Ureturn));
             sprintf(buffer, "endfunc_%s", id);
             code = seq(code, make_branch(OP_BRANCH_UNCOND, buffer, 0));
             break;
@@ -179,7 +179,7 @@ Code translate_stmt(char *id, int r, Stmt s, int base) {
     return code;
 }
 
-Code translate_expr(char *id, int r, Expr e, int base) {
+Code translate_expr(char *id, int r, int base, Expr e) {
     Code    code;
     Param   var;
     switch(e->t) {
@@ -191,21 +191,21 @@ Code translate_expr(char *id, int r, Expr e, int base) {
             code = load_const(r, e->e.Uconst);
             break;
         case EXPR_BINOP:
-            code = translate_expr(id, r, e->e.Ubinop.e1, base);
-            code = seq(code, translate_expr(id, r + 1, e->e.Ubinop.e2, base));
+            code = translate_expr(id, r, base, e->e.Ubinop.e1);
+            code = seq(code, translate_expr(id, r + 1, base, e->e.Ubinop.e2));
             code = seq(code, translate_binop(r, e));
             break;
         case EXPR_UNOP:
-            code = translate_unop(id, r, e, base);
+            code = translate_unop(id, r, base, e);
             break;
         case EXPR_FUNC:
-            code = translate_call(id, r, e, base);
+            code = translate_call(id, r, base, e);
             break;
     }
     return code;
 }
 
-Code translate_call(char *id, int r, Expr e, int base) {
+Code translate_call(char *id, int r, int base, Expr e) {
     Exprs   args = e->e.Ucall.args;
     Code    code;
     int     i;
@@ -219,7 +219,7 @@ Code translate_call(char *id, int r, Expr e, int base) {
 
     i = 0;
     while(args) {
-        code = seq(code, translate_expr(id, i++, args->e_first, base));
+        code = seq(code, translate_expr(id, i++, base, args->e_first));
         args = args->e_rest;
     }
 
@@ -258,22 +258,22 @@ Code translate_binop(int r, Expr e) {
     return instr_to_code(instr);
 }
 
-Code translate_unop(char *id, int r, Expr e, int base) {
+Code translate_unop(char *id, int r, int base, Expr e) {
     Code    code;
     Instr   instr;
     switch (e->e.Uunop.op) {
         case UNOP_NOT:
-            code = translate_expr(id, r, e->e.Uunop.e, base); 
+            code = translate_expr(id, r, base, e->e.Uunop.e); 
             instr = make_arith(r, OP_NOT, e->r);
             code = seq(code, instr_to_code(instr));
             break;
         case UNOP_INT_TO_REAL:
-            code = translate_expr(id, r, e->e.Uunop.e, base); 
+            code = translate_expr(id, r, base, e->e.Uunop.e); 
             instr = make_arith(r, OP_INT_TO_REAL, e->r);
             code = seq(code, instr_to_code(instr));
             break;
         case UNOP_UMINUS:
-            code = translate_expr(id, r + 1, e->e.Uunop.e, base); 
+            code = translate_expr(id, r + 1, base, e->e.Uunop.e); 
             switch (e->r) {
                 case TYPE_INT:
                     instr = make_op(OP_INT_CONST);
@@ -302,10 +302,10 @@ Code translate_unop(char *id, int r, Expr e, int base) {
     return code;
 }
 
-Code translate_stmts(char *id, int reg, Stmts ss, int base) {
+Code translate_stmts(char *id, int reg, int base, Stmts ss) {
     Code code = NULL;
     while (ss) {
-        code = seq(code, translate_stmt(id, reg, ss->s_first, base));
+        code = seq(code, translate_stmt(id, reg, base, ss->s_first));
         ss = ss->s_rest;
     }
 
@@ -398,6 +398,7 @@ Code make_op_call(const char *str) {
         case BUILTIN: return make_builtin(str);
         case USER_DEFINED: return make_usr_call(str);
     }
+    return make_builtin(str);
 }
 
 Code make_usr_call(const char *str) {
